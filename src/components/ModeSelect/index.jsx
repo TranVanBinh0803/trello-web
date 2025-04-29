@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, useColorScheme } from "@mui/material";
+import { Box, InputLabel, useColorScheme } from "@mui/material";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -14,7 +14,7 @@ const ModeSelect = () => {
     setMode(event.target.value);
   };
   return (
-    <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+    <FormControl size="small" sx={{minWidth: '120px'}}>
       <Select
         value={mode || "light"}
         onChange={handleChange}
