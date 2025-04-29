@@ -2,12 +2,13 @@ import {
   Badge,
   Box,
   Button,
+  InputAdornment,
   SvgIcon,
   TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
 import ModeSelect from "../ModeSelect";
 import AppsIcon from "@mui/icons-material/Apps";
 import { ReactComponent as TrelloIcon } from "~/assets/trello.svg?react";
@@ -17,9 +18,15 @@ import Starred from "./Menus/Starred";
 import Templates from "./Menus/Templates";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import Profiles from "./Menus/Profiles";
+import SearchIcon from "@mui/icons-material/Search";
 
 const AppBar = () => {
+  const [searchValue, setSearchValue] = useState("");
+  const handleSearch = () => {
+    console.log("Click search:", searchValue);
+  };
   return (
     <Box
       px={2}
@@ -30,7 +37,7 @@ const AppBar = () => {
         width: "100%",
         justifyContent: "space-between",
         gap: 2,
-        overflowX: 'auto'
+        overflowX: "auto",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -52,22 +59,38 @@ const AppBar = () => {
             Trello
           </Typography>
         </Box>
-        <Box sx={{display: {xs: 'none', md: 'flex'}, gap: 1}}>
+        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
           <Workspaces />
           <Recent />
           <Starred />
           <Templates />
-          <Button variant="outlined">Create</Button>
+          <Button variant="outlined" startIcon={<LibraryAddIcon />}>
+            Create
+          </Button>
         </Box>
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <TextField
           id="outlined-search"
-          label="Search ..."
           type="search"
           size="small"
-          sx={{minWidth: '120px'}}
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          sx={{ minWidth: "120px", maxWidth: "170px" }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon
+                    onClick={handleSearch}
+                    sx={{ cursor: "pointer", color: "primary.main" }}
+                  />
+                </InputAdornment>
+              ),
+            },
+          }}
         />
+
         <ModeSelect />
         <Tooltip title="Notifications">
           <Badge color="primary" variant="dot" sx={{ cursor: "pointer" }}>
