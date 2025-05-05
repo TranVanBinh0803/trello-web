@@ -33,6 +33,7 @@ const BoardBar = () => {
         gap: 2,
         overflowX: "auto",
         borderTop: "1px solid #ccc",
+        borderBottom: "1px solid #ccc",
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>

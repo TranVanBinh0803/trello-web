@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import ModeSelect from "../ModeSelect";
+import ModeSelect from "../ModeSelect/ModeSelect";
 import AppsIcon from "@mui/icons-material/Apps";
 import { ReactComponent as TrelloIcon } from "~/assets/trello.svg?react";
 import Workspaces from "./Menus/Workspaces";
