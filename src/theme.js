@@ -1,4 +1,4 @@
-// import { cyan, deepOrange, orange, teal } from "@mui/material/colors";
+import { cyan, deepOrange, orange, teal } from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
 
 const APP_BAR_HEIGHT = "58px";
@@ -9,19 +9,19 @@ const COLUMN_FOOTER_HEIGHT = "56px";
 
 const theme = createTheme({
   colorSchemes: {
-    dark: true,
-    // light: {
-    //   palette: {
-    //     primary: teal,
-    //     secondary: deepOrange
-    //   }
-    // },
-    // dark: {
-    //   palette: {
-    //     primary: cyan,
-    //     secondary: orange
-    //   }
-    // }
+    // dark: true,
+    light: {
+      palette: {
+        primary: teal,
+        secondary: deepOrange
+      }
+    },
+    dark: {
+      palette: {
+        primary: cyan,
+        secondary: orange
+      }
+    }
   },
   trello: {
     appBarHeight: APP_BAR_HEIGHT,

@@ -2,9 +2,10 @@ import {
   AddToDriveOutlined,
   DashboardRounded,
   PersonAdd,
-  VpnLockOutlined,
 } from "@mui/icons-material";
-import { Box,  Button,  Chip } from "@mui/material";
+import PublicIcon from "@mui/icons-material/Public";
+import PublicOffIcon from "@mui/icons-material/PublicOff";
+import { Box, Button, Chip } from "@mui/material";
 import React from "react";
 import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
@@ -20,7 +21,9 @@ const MENU_STYLES = {
   },
 };
 
-const BoardBar = () => {
+const BoardBar = ({board}) => {
+  const isPublic = board?.type === "public";
+  console.log("Board:", board);
   return (
     <Box
       px={2}
@@ -39,13 +42,19 @@ const BoardBar = () => {
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <Chip
           icon={<DashboardRounded color="primary.main" />}
-          label="Dashboard"
+          label={board?.title}
           sx={MENU_STYLES}
           clickable
         />
         <Chip
-          icon={<VpnLockOutlined color="primary.main" />}
-          label="Public/Private Workspace"
+          icon={
+            isPublic ? (
+              <PublicIcon color="primary.main" />
+            ) : (
+              <PublicOffIcon color="primary.main" />
+            )
+          }
+          label={`${isPublic ? "Public" : "Private"} Workspace`}
           sx={MENU_STYLES}
           clickable
         />
@@ -57,7 +66,9 @@ const BoardBar = () => {
         />
       </Box>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-      <Button variant="outlined"  startIcon={<PersonAdd/>}>Invite</Button>
+        <Button variant="outlined" startIcon={<PersonAdd />}>
+          Invite
+        </Button>
         <AvatarGroup
           max={4}
           sx={{
@@ -65,7 +76,7 @@ const BoardBar = () => {
               width: 34,
               height: 34,
               fontSize: 16,
-              backgroundColor: 'primary.main'
+              backgroundColor: "primary.main",
             },
           }}
         >

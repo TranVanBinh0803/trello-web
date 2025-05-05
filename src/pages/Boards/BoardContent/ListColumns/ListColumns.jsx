@@ -3,7 +3,7 @@ import React from "react";
 import Column from "./Column/Column";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 
-const ListColumns = () => {
+const ListColumns = ({ columns }) => {
   return (
     <Box
       sx={{
@@ -15,8 +15,10 @@ const ListColumns = () => {
         overflowY: "hidden",
       }}
     >
-      <Column />
-      <Column />
+      {columns?.map((column) => {
+        return <Column key={column._id} column={column} />;
+      })}
+
       <Box
         sx={{
           minWidth: 180,

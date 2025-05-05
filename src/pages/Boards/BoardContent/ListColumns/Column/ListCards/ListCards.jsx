@@ -3,7 +3,7 @@ import React from "react";
 import { Box } from "@mui/material";
 import Card from "./Card/Card";
 
-const ListCards = () => {
+const ListCards = ({ cards }) => {
   return (
     <Box
       sx={{
@@ -28,9 +28,9 @@ const ListCards = () => {
         },
       }}
     >
-      <Card/>
-      <Card/>
-
+      {cards?.map((card) => {
+        return <Card key={card._id} card={card} />;
+      })}
     </Box>
   );
 };

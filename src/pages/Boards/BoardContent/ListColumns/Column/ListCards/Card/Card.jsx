@@ -1,5 +1,4 @@
 import React from "react";
-
 import {
   Typography,
   Button,
@@ -7,10 +6,15 @@ import {
   CardContent,
   CardMedia,
 } from "@mui/material";
-import {Card as MuiCard} from '@mui/material'
+import { Card as MuiCard } from "@mui/material";
 import { Attachment, Comment, Group } from "@mui/icons-material";
 
-const Card = () => {
+const Card = ({ card }) => {
+  const hasMembers = Boolean(card?.memberIds?.length);
+  const hasComments = Boolean(card?.comments?.length);
+  const hasAttachments = Boolean(card?.attachments?.length);
+  const hasAnyActions = hasMembers || hasComments || hasAttachments;
+
   return (
     <MuiCard
       sx={{
@@ -19,25 +23,30 @@ const Card = () => {
         overflow: "unset",
       }}
     >
-      <CardMedia
-        sx={{ height: 140 }}
-        image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGF8FwEQcN76kLjRHfGta7dnHHM0BgeFQ7Wg&s"
-        title="green iguana"
-      />
+      {card?.cover && <CardMedia sx={{ height: 140 }} image={card.cover} />}
       <CardContent sx={{ p: 1.5, "&:last-child": { p: 1.5 } }}>
-        <Typography>Lizard</Typography>
+        <Typography variant="body2">{card?.title}</Typography>
       </CardContent>
-      <CardActions sx={{ p: "0 4px 8px 4px" }}>
-        <Button size="small" startIcon={<Group />}>
-          20
-        </Button>
-        <Button size="small" startIcon={<Comment />}>
-          15
-        </Button>
-        <Button size="small" startIcon={<Attachment />}>
-          10
-        </Button>
-      </CardActions>
+
+      {hasAnyActions && (
+        <CardActions sx={{ p: "0 4px 8px 4px" }}>
+          {hasMembers && (
+            <Button size="small" startIcon={<Group />}>
+              {card.memberIds.length}
+            </Button>
+          )}
+          {hasComments && (
+            <Button size="small" startIcon={<Comment />}>
+              {card.comments.length}
+            </Button>
+          )}
+          {hasAttachments && (
+            <Button size="small" startIcon={<Attachment />}>
+              {card.attachments.length}
+            </Button>
+          )}
+        </CardActions>
+      )}
     </MuiCard>
   );
 };

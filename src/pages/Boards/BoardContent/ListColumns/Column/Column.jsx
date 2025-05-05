@@ -19,9 +19,9 @@ import {
 } from "@mui/icons-material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ListCards from "./ListCards/ListCards";
+import { mapOrder } from "~/untils/sorts";
 
-
-const Column = () => {
+const Column = ({ column }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -30,6 +30,9 @@ const Column = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const orderedCards = mapOrder(column?.cards, column?.cardOrderIds, "_id");
+
   return (
     <Box
       sx={{
@@ -62,7 +65,7 @@ const Column = () => {
             fontSize: "1rem !important",
           }}
         >
-          Column Title
+          {column.title}
         </Typography>
         <Box>
           <Tooltip title="More options">
@@ -112,8 +115,9 @@ const Column = () => {
           </Menu>
         </Box>
       </Box>
+
       {/* List Card */}
-      <ListCards />
+      <ListCards cards={orderedCards} />
 
       {/* Box Column Footer */}
       <Box
