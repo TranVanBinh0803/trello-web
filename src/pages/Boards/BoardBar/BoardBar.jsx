@@ -23,7 +23,6 @@ const MENU_STYLES = {
 
 const BoardBar = ({board}) => {
   const isPublic = board?.type === "public";
-  console.log("Board:", board);
   return (
     <Box
       px={2}
