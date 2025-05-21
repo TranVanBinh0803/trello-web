@@ -8,6 +8,7 @@ import {
 } from "@dnd-kit/sortable";
 import { Close } from "@mui/icons-material";
 import { toast } from "react-toastify";
+import { createNewColumnAPI } from "~/apis";
 
 const ListColumns = ({ columns }) => {
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false);
@@ -18,13 +19,19 @@ const ListColumns = ({ columns }) => {
   const [newColumnTitle, setNewColumnTitle] = useState("");
 
   const addNewColumn = () => {
-    if(!newColumnTitle) {
-      toast.error("Please enter column title")
+    if (!newColumnTitle) {
+      toast.error("Please enter column title");
     }
 
+    const newColumnData = {
+      title: newColumnTitle,
+      boardId: "682aec06ccbbf399b8a14ea5",
+    };
+    createNewColumnAPI(newColumnData);
+
     toggleOpenNewColumnForm();
-    setNewColumnTitle("")
-  }
+    setNewColumnTitle("");
+  };
 
   return (
     <SortableContext

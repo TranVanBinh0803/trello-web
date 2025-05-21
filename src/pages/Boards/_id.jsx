@@ -3,7 +3,6 @@ import * as React from "react";
 import AppBar from "~/components/AppBar/AppBar";
 import BoardBar from "./BoardBar/BoardBar";
 import BoardContent from "./BoardContent/BoardContent";
-import { mockData } from "~/apis/mock-data";
 import { useState, useEffect } from "react";
 import { fetchBoardDetailsAPI } from "~/apis";
 
@@ -13,14 +12,13 @@ const Board = () => {
     const boardId = "682aec06ccbbf399b8a14ea5";
     fetchBoardDetailsAPI(boardId).then((board) => {
       setBoard(board);
-      console.log("board:", board);
     });
   }, []);
   return (
     <Container disableGutters maxWidth={false} sx={{ height: "100vh" }}>
       <AppBar />
-      <BoardBar board={mockData.board} />
-      <BoardContent board={mockData.board} />
+      <BoardBar board={board} />
+      <BoardContent board={board} />
     </Container>
   );
 };
