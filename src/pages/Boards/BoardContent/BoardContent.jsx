@@ -4,9 +4,8 @@ import { mapOrder } from "~/untils/sorts";
 import ListColumns from "./ListColumns/ListColumns";
 import {
   DndContext,
-  PointerSensor,
-  MouseSensor,
-  TouchSensor,
+  // MouseSensor,
+  // TouchSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -18,6 +17,7 @@ import Column from "./ListColumns/Column/Column";
 import Card from "./ListColumns/Column/ListCards/Card/Card";
 import { cloneDeep, isEmpty } from "lodash";
 import { generatePlaceholderCard } from "~/untils/formatters";
+import { MouseSensor, TouchSensor } from "~/customLibraries/DndKitSensors";
 
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: "ACTIVE_DRAG_ITEM_TYPE_COLUMN",

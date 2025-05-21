@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import {
@@ -9,9 +9,11 @@ import {
   ListItemText,
   Tooltip,
   Button,
+  TextField,
 } from "@mui/material";
 import {
   AddCard,
+  Close,
   Cloud,
   ContentCut,
   DeleteForever,
@@ -22,6 +24,7 @@ import ListCards from "./ListCards/ListCards";
 import { mapOrder } from "~/untils/sorts";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { toast } from "react-toastify";
 
 const Column = ({ column }) => {
   const {
@@ -51,6 +54,22 @@ const Column = ({ column }) => {
   };
 
   const orderedCards = mapOrder(column?.cards, column?.cardOrderIds, "_id");
+
+  const [openNewCardForm, setOpenNewCardForm] = useState(false);
+  const toggleOpenNewCardForm = () => {
+    setOpenNewCardForm(!openNewCardForm);
+  };
+
+  const [newCardTitle, setNewCardTitle] = useState("");
+
+  const addNewCard = () => {
+    if (!newCardTitle) {
+      toast.error("Please enter card title")
+    }
+
+    toggleOpenNewCardForm();
+    setNewCardTitle("");
+  };
 
   return (
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
@@ -145,15 +164,64 @@ const Column = ({ column }) => {
           sx={{
             height: (theme) => theme.trello.columnFooterHeight,
             p: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
           }}
         >
-          <Button startIcon={<AddCard />}>Add new card</Button>
-          <Tooltip title="Drag to move">
-            <DragHandle sx={{ cursor: "pointer" }} />
-          </Tooltip>
+          {!openNewCardForm ? (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Button startIcon={<AddCard />} onClick={toggleOpenNewCardForm}>
+                Add new card
+              </Button>
+              <Tooltip title="Drag to move">
+                <DragHandle sx={{ cursor: "pointer" }} />
+              </Tooltip>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <TextField
+                label="Enter card title ..."
+                type="text"
+                size="small"
+                variant="outlined"
+                autoFocus
+                data-no-dnd= "true"
+                value={newCardTitle}
+                onChange={(e) => setNewCardTitle(e.target.value)}
+                sx={{}}
+              />
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Button
+                  onClick={addNewCard}
+                  variant="contained"
+                  color="success"
+                  size="medium"
+                  sx={{
+                    boxShadow: "none",
+                    border: "none",
+                  }}
+                >
+                  Add
+                </Button>
+                <Close
+                  fontSize="small"
+                  sx={{ cursor: "pointer", "&:hover": { color: "#ccc" } }}
+                  onClick={toggleOpenNewCardForm}
+                />
+              </Box>
+            </Box>
+          )}
         </Box>
       </Box>
     </div>
