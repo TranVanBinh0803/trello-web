@@ -1,9 +1,13 @@
 import { ColumnType } from "./column";
 
+enum Type {
+  PUBLIC = "public",
+  PRIVATE = "private",
+}
 export interface BoardType {
   _id: string;
   title: string;
-  type: "public" | "private";
+  type: Type;
   description: string;
   ownerIds?: string[]; 
   memberIds?: string[];
