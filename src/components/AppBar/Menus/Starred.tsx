@@ -6,34 +6,39 @@ import { Box, Divider, ListItemIcon, ListItemText, Typography } from "@mui/mater
 import { Cloud, ContentCopy, ContentCut, ContentPaste } from "@mui/icons-material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-const Workspaces = () => {
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+const Starred: React.FC = () => {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+  
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorEl(event.currentTarget);
+    };
+  
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
+
   return (
     <Box>
       <Button
-        id="basic-button-workspaces"
-        aria-controls={open ? "basic-menu-workspaces" : undefined}
+        id="basic-button-starred"
+        aria-controls={open ? "basic-menu-starred" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
         endIcon={<ExpandMoreIcon/>}
       >
-        Workspaces
+        Starred
       </Button>
       <Menu
-        id="basic-menu-workspaces"
+        id="basic-menu-starred"
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
         slotProps={{
-          "aria-labelledby": "basic-button-workspaces",
+          root: {
+            "aria-labelledby": "basic-button-starred",
+          },
         }}
       >
          <MenuItem>
@@ -75,4 +80,4 @@ const Workspaces = () => {
   );
 };
 
-export default Workspaces;
+export default Starred;

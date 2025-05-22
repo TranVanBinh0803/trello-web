@@ -9,8 +9,9 @@ import {
 import { Close } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { createNewColumnAPI } from "~/apis";
+import { ListColumnsProps } from "~/types/column";
 
-const ListColumns = ({ columns }) => {
+const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false);
   const toggleOpenNewColumnForm = () => {
     setOpenNewColumnForm(!openNewColumnForm);
@@ -18,19 +19,26 @@ const ListColumns = ({ columns }) => {
 
   const [newColumnTitle, setNewColumnTitle] = useState("");
 
-  const addNewColumn = () => {
-    if (!newColumnTitle) {
+  const addNewColumn = async () => {
+    if (!newColumnTitle.trim()) {
       toast.error("Please enter column title");
+      return;
     }
 
     const newColumnData = {
       title: newColumnTitle,
       boardId: "682aec06ccbbf399b8a14ea5",
     };
-    createNewColumnAPI(newColumnData);
 
-    toggleOpenNewColumnForm();
-    setNewColumnTitle("");
+    try {
+      await createNewColumnAPI(newColumnData);
+      toast.success("Column added successfully!");
+      toggleOpenNewColumnForm();
+      setNewColumnTitle("");
+    } catch (error) {
+      toast.error("Failed to add column");
+      console.error(error);
+    }
   };
 
   return (
@@ -48,9 +56,10 @@ const ListColumns = ({ columns }) => {
           overflowY: "hidden",
         }}
       >
-        {columns?.map((column) => {
-          return <Column key={column._id} column={column} />;
-        })}
+        {columns?.map((column) => (
+          <Column key={column._id} column={column} />
+        ))}
+
         {!openNewColumnForm ? (
           <Box
             sx={{
@@ -94,7 +103,6 @@ const ListColumns = ({ columns }) => {
               autoFocus
               value={newColumnTitle}
               onChange={(e) => setNewColumnTitle(e.target.value)}
-              sx={{}}
             />
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Button
@@ -102,10 +110,7 @@ const ListColumns = ({ columns }) => {
                 variant="contained"
                 color="success"
                 size="small"
-                sx={{
-                  boxShadow: "none",
-                  border: "none",
-                }}
+                sx={{ boxShadow: "none", border: "none" }}
               >
                 Add Column
               </Button>

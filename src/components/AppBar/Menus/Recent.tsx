@@ -6,34 +6,38 @@ import { Box, Divider, ListItemIcon, ListItemText, Typography } from "@mui/mater
 import { Cloud, ContentCopy, ContentCut, ContentPaste } from "@mui/icons-material";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-const Templates = () => {
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+const Recent: React.FC = () => {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+  
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorEl(event.currentTarget);
+    };
+  
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
   return (
     <Box>
       <Button
-        id="basic-button-templates"
-        aria-controls={open ? "basic-menu-templates" : undefined}
+        id="basic-button-recent"
+        aria-controls={open ? "basic-menu-recent" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
         endIcon={<ExpandMoreIcon/>}
       >
-        Templates
+        Recent
       </Button>
       <Menu
-        id="basic-menu-templates"
+        id="basic-menu-recent"
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
         slotProps={{
-          "aria-labelledby": "basic-button-templates",
+          root: {
+            "aria-labelledby": "basic-button-recent",
+          },
         }}
       >
          <MenuItem>
@@ -75,4 +79,4 @@ const Templates = () => {
   );
 };
 
-export default Templates;
+export default Recent;

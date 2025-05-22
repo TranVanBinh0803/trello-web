@@ -8,7 +8,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, ChangeEvent } from "react";
 import ModeSelect from "../ModeSelect/ModeSelect";
 import AppsIcon from "@mui/icons-material/Apps";
 import { ReactComponent as TrelloIcon } from "~/assets/trello.svg?react";
@@ -22,11 +22,17 @@ import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import Profiles from "./Menus/Profiles";
 import SearchIcon from "@mui/icons-material/Search";
 
-const AppBar = () => {
-  const [searchValue, setSearchValue] = useState("");
-  const handleSearch = () => {
+const AppBar: React.FC = () => {
+  const [searchValue, setSearchValue] = useState<string>("");
+
+  const handleSearch = (): void => {
     console.log("Click search:", searchValue);
   };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    setSearchValue(e.target.value);
+  };
+
   return (
     <Box
       px={2}
@@ -49,7 +55,7 @@ const AppBar = () => {
             sx={{ color: "primary.main", fontSize: "18px" }}
           />
           <Typography
-            variant="span"
+            component="span"
             sx={{
               fontSize: "1.2rem",
               fontWeight: "bold",
@@ -69,13 +75,14 @@ const AppBar = () => {
           </Button>
         </Box>
       </Box>
+
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <TextField
           id="outlined-search"
           type="search"
           size="small"
           value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          onChange={handleChange}
           sx={{ minWidth: "120px", maxWidth: "170px" }}
           slotProps={{
             input: {
@@ -92,14 +99,17 @@ const AppBar = () => {
         />
 
         <ModeSelect />
+
         <Tooltip title="Notifications">
           <Badge color="primary" variant="dot" sx={{ cursor: "pointer" }}>
             <NotificationsNoneIcon sx={{ color: "primary.main" }} />
           </Badge>
         </Tooltip>
-        <Tooltip title="Notifications">
+
+        <Tooltip title="Help">
           <HelpOutlineIcon sx={{ cursor: "pointer", color: "primary.main" }} />
         </Tooltip>
+
         <Profiles />
       </Box>
     </Box>

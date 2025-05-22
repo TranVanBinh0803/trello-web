@@ -10,8 +10,9 @@ import { Card as MuiCard } from "@mui/material";
 import { Attachment, Comment, Group } from "@mui/icons-material";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { CardProps } from "~/types/card";
 
-const Card = ({ card }) => {
+const Card: React.FC<CardProps> = ({ card }) => {
   const hasMembers = Boolean(card?.memberIds?.length);
   const hasComments = Boolean(card?.comments?.length);
   const hasAttachments = Boolean(card?.attachments?.length);
@@ -25,8 +26,8 @@ const Card = ({ card }) => {
     transition,
     isDragging,
   } = useSortable({ id: card._id, data: { ...card } });
-  const dndKitCardStyles = {
-    // touchAction: 'none',
+
+  const dndKitCardStyles: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : undefined,
@@ -58,17 +59,17 @@ const Card = ({ card }) => {
         <CardActions sx={{ p: "0 4px 8px 4px" }}>
           {hasMembers && (
             <Button size="small" startIcon={<Group />}>
-              {card.memberIds.length}
+              {card.memberIds?.length}
             </Button>
           )}
           {hasComments && (
             <Button size="small" startIcon={<Comment />}>
-              {card.comments.length}
+              {card.comments?.length}
             </Button>
           )}
           {hasAttachments && (
             <Button size="small" startIcon={<Attachment />}>
-              {card.attachments.length}
+              {card.attachments?.length}
             </Button>
           )}
         </CardActions>
