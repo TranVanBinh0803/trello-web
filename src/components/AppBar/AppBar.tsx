@@ -11,7 +11,7 @@ import {
 import React, { useState, ChangeEvent } from "react";
 import ModeSelect from "../ModeSelect/ModeSelect";
 import AppsIcon from "@mui/icons-material/Apps";
-import { ReactComponent as TrelloIcon } from "~/assets/trello.svg?react";
+// import { ReactComponent as TrelloIcon } from "~/assets/trello.svg?react";
 import Workspaces from "./Menus/Workspaces";
 import Recent from "./Menus/Recent";
 import Starred from "./Menus/Starred";
@@ -49,11 +49,11 @@ const AppBar: React.FC = () => {
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <AppsIcon sx={{ color: "primary.main" }} />
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <SvgIcon
+          {/* <SvgIcon
             component={TrelloIcon}
             inheritViewBox
             sx={{ color: "primary.main", fontSize: "18px" }}
-          />
+          /> */}
           <Typography
             component="span"
             sx={{
