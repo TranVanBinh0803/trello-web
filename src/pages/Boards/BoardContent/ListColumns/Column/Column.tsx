@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, MouseEvent } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import {
@@ -25,8 +25,10 @@ import { mapOrder } from "~/untils/sorts";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "react-toastify";
+import { ColumnProps } from "~/types/column";
 
-const Column = ({ column }) => {
+
+const Column: React.FC<ColumnProps> = ({ column }) => {
   const {
     attributes,
     listeners,
@@ -37,35 +39,39 @@ const Column = ({ column }) => {
   } = useSortable({ id: column._id, data: { ...column } });
 
   const dndKitColumnStyles = {
-    // touchAction: 'none',
     transform: CSS.Translate.toString(transform),
     transition,
     height: "100%",
     opacity: isDragging ? 0.5 : undefined,
   };
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+
+  const handleClick = (event: MouseEvent<SVGSVGElement>) => {
+  setAnchorEl(event.currentTarget as unknown as HTMLElement);
+};
+
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-  const orderedCards = mapOrder(column?.cards, column?.cardOrderIds, "_id");
+  const orderedCards = mapOrder(column.cards, column.cardOrderIds, "_id");
 
-  const [openNewCardForm, setOpenNewCardForm] = useState(false);
+  const [openNewCardForm, setOpenNewCardForm] = useState<boolean>(false);
+  const [newCardTitle, setNewCardTitle] = useState<string>("");
+
   const toggleOpenNewCardForm = () => {
-    setOpenNewCardForm(!openNewCardForm);
+    setOpenNewCardForm((prev) => !prev);
   };
 
-  const [newCardTitle, setNewCardTitle] = useState("");
-
   const addNewCard = () => {
-    if (!newCardTitle) {
-      toast.error("Please enter card title")
+    if (!newCardTitle.trim()) {
+      toast.error("Please enter card title");
+      return;
     }
+
+    // TODO: logic thêm card ở đây
 
     toggleOpenNewCardForm();
     setNewCardTitle("");
@@ -87,7 +93,7 @@ const Column = ({ column }) => {
             `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`,
         }}
       >
-        {/* Box Column Header */}
+        {/* Header */}
         <Box
           sx={{
             height: (theme) => theme.trello.columnHeaderHeight,
@@ -107,6 +113,7 @@ const Column = ({ column }) => {
           >
             {column.title}
           </Typography>
+
           <Box>
             <Tooltip title="More options">
               <ExpandMoreIcon
@@ -118,13 +125,16 @@ const Column = ({ column }) => {
                 onClick={handleClick}
               />
             </Tooltip>
+
             <Menu
               id="basic-menu-column-dropdown"
               anchorEl={anchorEl}
               open={open}
               onClose={handleClose}
               slotProps={{
-                "aria-labelledby": "basic-column-dropdown",
+                root: {
+                  "aria-labelledby": "basic-column-dropdown",
+                },
               }}
             >
               <MenuItem>
@@ -156,16 +166,11 @@ const Column = ({ column }) => {
           </Box>
         </Box>
 
-        {/* List Card */}
+        {/* List cards */}
         <ListCards cards={orderedCards} />
 
-        {/* Box Column Footer */}
-        <Box
-          sx={{
-            height: (theme) => theme.trello.columnFooterHeight,
-            p: 2,
-          }}
-        >
+        {/* Footer */}
+        <Box sx={{ height: (theme) => theme.trello.columnFooterHeight, p: 2 }}>
           {!openNewCardForm ? (
             <Box
               sx={{
@@ -196,10 +201,9 @@ const Column = ({ column }) => {
                 size="small"
                 variant="outlined"
                 autoFocus
-                data-no-dnd= "true"
+                data-no-dnd="true"
                 value={newCardTitle}
                 onChange={(e) => setNewCardTitle(e.target.value)}
-                sx={{}}
               />
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Button

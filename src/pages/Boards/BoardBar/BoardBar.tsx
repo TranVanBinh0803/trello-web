@@ -9,6 +9,7 @@ import { Box, Button, Chip } from "@mui/material";
 import React from "react";
 import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
+import { BoardBarProps } from "~/types/board";
 
 const MENU_STYLES = {
   color: "primary.main",
@@ -16,13 +17,14 @@ const MENU_STYLES = {
   border: "none",
   paddingX: "5px",
   borderRadius: "4px",
-  "&: hover": {
+  "&:hover": {
     bgcolor: "primary.50",
   },
 };
 
-const BoardBar = ({board}) => {
+const BoardBar: React.FC<BoardBarProps> = ({ board }) => {
   const isPublic = board?.type === "public";
+
   return (
     <Box
       px={2}
@@ -40,7 +42,7 @@ const BoardBar = ({board}) => {
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <Chip
-          icon={<DashboardRounded color="primary.main" />}
+          icon={<DashboardRounded color="primary" />}
           label={board?.title}
           sx={MENU_STYLES}
           clickable
@@ -48,9 +50,9 @@ const BoardBar = ({board}) => {
         <Chip
           icon={
             isPublic ? (
-              <PublicIcon color="primary.main" />
+              <PublicIcon color="primary" />
             ) : (
-              <PublicOffIcon color="primary.main" />
+              <PublicOffIcon color="primary" />
             )
           }
           label={`${isPublic ? "Public" : "Private"} Workspace`}
@@ -58,7 +60,7 @@ const BoardBar = ({board}) => {
           clickable
         />
         <Chip
-          icon={<AddToDriveOutlined color="primary.main" />}
+          icon={<AddToDriveOutlined color="primary" />}
           label="Add to google drive"
           sx={MENU_STYLES}
           clickable

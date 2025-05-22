@@ -1,0 +1,22 @@
+import { CardType } from "./card";
+
+export interface ColumnType {
+  _id: string;
+  title: string;
+  cards: CardType[];
+  cardOrderIds: string[];
+  boardId: string;
+}
+
+export type ColumnProps = {
+  column: ColumnType;
+};
+
+export type ListColumnsProps = {
+  columns: ColumnType[];
+};
+
+export type NewColumn = {
+  boardId: string;
+  title: string;
+}

@@ -1,19 +1,20 @@
 import { Container } from "@mui/material";
-import * as React from "react";
-import AppBar from "~/components/AppBar/AppBar";
+import { useEffect, useState } from "react";
+import { fetchBoardDetailsAPI } from "~/apis";
 import BoardBar from "./BoardBar/BoardBar";
 import BoardContent from "./BoardContent/BoardContent";
-import { useState, useEffect } from "react";
-import { fetchBoardDetailsAPI } from "~/apis";
+import AppBar from "~/components/AppBar/AppBar";
 
-const Board = () => {
-  const [board, setBoard] = useState(null);
+const Board: React.FC = () => {
+  const [board, setBoard] = useState<any>(null);
+
   useEffect(() => {
     const boardId = "682aec06ccbbf399b8a14ea5";
-    fetchBoardDetailsAPI(boardId).then((board) => {
-      setBoard(board);
+    fetchBoardDetailsAPI(boardId).then((boardData: any) => {
+      setBoard(boardData);
     });
   }, []);
+
   return (
     <Container disableGutters maxWidth={false} sx={{ height: "100vh" }}>
       <AppBar />
