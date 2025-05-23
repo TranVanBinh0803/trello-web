@@ -26,7 +26,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "react-toastify";
 import { ColumnProps } from "~/types/column";
-
+import { useCreateCard } from "~/pages/Boards/api/useCreateCard";
 
 const Column: React.FC<ColumnProps> = ({ column }) => {
   const {
@@ -49,8 +49,8 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
   const open = Boolean(anchorEl);
 
   const handleClick = (event: MouseEvent<SVGSVGElement>) => {
-  setAnchorEl(event.currentTarget as unknown as HTMLElement);
-};
+    setAnchorEl(event.currentTarget as unknown as HTMLElement);
+  };
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -65,16 +65,27 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
     setOpenNewCardForm((prev) => !prev);
   };
 
+  const createCardApi = useCreateCard();
+
   const addNewCard = () => {
     if (!newCardTitle.trim()) {
       toast.error("Please enter card title");
       return;
     }
 
-    // TODO: logic thêm card ở đây
+    const newColumnData = {
+      title: newCardTitle,
+      boardId: "682aec06ccbbf399b8a14ea5",
+      columnId: column._id,
+    };
 
-    toggleOpenNewCardForm();
-    setNewCardTitle("");
+    try {
+      createCardApi.mutate(newColumnData);
+      toggleOpenNewCardForm();
+      setNewCardTitle("");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

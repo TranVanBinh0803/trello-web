@@ -8,8 +8,8 @@ import {
 } from "@dnd-kit/sortable";
 import { Close } from "@mui/icons-material";
 import { toast } from "react-toastify";
-import { createNewColumnAPI } from "~/apis";
 import { ListColumnsProps } from "~/types/column";
+import { useCreateColumn } from "../../api/useCreateColumn";
 
 const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false);
@@ -18,6 +18,8 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
   };
 
   const [newColumnTitle, setNewColumnTitle] = useState("");
+
+  const createColumnApi = useCreateColumn();
 
   const addNewColumn = async () => {
     if (!newColumnTitle.trim()) {
@@ -31,12 +33,10 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
     };
 
     try {
-      await createNewColumnAPI(newColumnData);
-      toast.success("Column added successfully!");
+      createColumnApi.mutate(newColumnData);
       toggleOpenNewColumnForm();
       setNewColumnTitle("");
     } catch (error) {
-      toast.error("Failed to add column");
       console.error(error);
     }
   };

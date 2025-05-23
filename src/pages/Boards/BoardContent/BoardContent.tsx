@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import { mapOrder } from "~/untils/sorts";
 import ListColumns from "./ListColumns/ListColumns";
 import {
@@ -20,11 +20,12 @@ import { arrayMove } from "@dnd-kit/sortable";
 import { cloneDeep, isEmpty } from "lodash";
 import { generatePlaceholderCard } from "~/untils/formatters";
 import { MouseSensor, TouchSensor } from "~/customLibraries/DndKitSensors";
-import { BoardContentProps } from "~/types/board";
 import { ColumnType } from "~/types/column";
 import { CardType } from "~/types/card";
 import Column from "./ListColumns/Column/Column";
 import Card from "./ListColumns/Column/ListCards/Card/Card";
+import { useAtomValue } from "jotai";
+import { boardDataAtom } from "~/atoms/BoardAtom";
 
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: "ACTIVE_DRAG_ITEM_TYPE_COLUMN",
@@ -33,7 +34,10 @@ const ACTIVE_DRAG_ITEM_TYPE = {
 
 type ActiveDragItemType = typeof ACTIVE_DRAG_ITEM_TYPE[keyof typeof ACTIVE_DRAG_ITEM_TYPE];
 
-const BoardContent: React.FC<BoardContentProps> = ({ board }) => {
+const BoardContent: React.FC<any>  = ({isFetching}) => {
+
+  const board = useAtomValue(boardDataAtom);  
+
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
       distance: 10,
@@ -271,21 +275,31 @@ const BoardContent: React.FC<BoardContentProps> = ({ board }) => {
           height: (theme) => theme.trello.boardContentHeight,
           width: "100%",
           p: "10px 0",
+          display: "flex",
+          alignItems: isFetching ? "center" : "flex-start",
+          justifyContent: isFetching ? "center" : "flex-start",
         }}
+       
       >
-        <ListColumns columns={orderedColumns} />
+        {isFetching ? (
+        <CircularProgress />
+      ) : (
+        <>
+          <ListColumns columns={orderedColumns} />
 
-        <DragOverlay dropAnimation={dropAnimation}>
-          {activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN && activeDragItemData ? (
-            <Column
-              isDragging
-              column={activeDragItemData as ColumnType}
-              isUsingDragOverlay
-            />
-          ) : activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD && activeDragItemData ? (
-            <Card card={activeDragItemData as CardType} isDragging />
-          ) : null}
-        </DragOverlay>
+          <DragOverlay dropAnimation={dropAnimation}>
+            {activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN && activeDragItemData ? (
+              <Column
+                isDragging
+                column={activeDragItemData as ColumnType}
+                isUsingDragOverlay
+              />
+            ) : activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD && activeDragItemData ? (
+              <Card card={activeDragItemData as CardType} isDragging />
+            ) : null}
+          </DragOverlay>
+        </>
+      )}
       </Box>
     </DndContext>
   );

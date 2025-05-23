@@ -11,12 +11,12 @@ export interface BoardType {
   description: string;
   ownerIds?: string[]; 
   memberIds?: string[];
-  columnOrerIds: string[];
-  column: ColumnType[];
+  columnOrderIds: string[];
+  columns: ColumnType[];
 };
 
 export type BoardBarProps = {
-  board: BoardType;
+  board: BoardType | null | undefined;
 };
 
 export type BoardContentProps = {

@@ -10,6 +10,8 @@ export interface ColumnType {
 
 export type ColumnProps = {
   column: ColumnType;
+  isDragging?: boolean;
+  isUsingDragOverlay?: boolean;
 };
 
 export type ListColumnsProps = {

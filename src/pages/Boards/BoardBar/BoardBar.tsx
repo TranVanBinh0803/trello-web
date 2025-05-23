@@ -6,10 +6,10 @@ import {
 import PublicIcon from "@mui/icons-material/Public";
 import PublicOffIcon from "@mui/icons-material/PublicOff";
 import { Box, Button, Chip } from "@mui/material";
-import React from "react";
 import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
-import { BoardBarProps } from "~/types/board";
+import { useAtomValue } from "jotai";
+import { boardDataAtom } from "~/atoms/BoardAtom";
 
 const MENU_STYLES = {
   color: "primary.main",
@@ -22,7 +22,8 @@ const MENU_STYLES = {
   },
 };
 
-const BoardBar: React.FC<BoardBarProps> = ({ board }) => {
+const BoardBar = () => {
+  const board = useAtomValue(boardDataAtom);  
   const isPublic = board?.type === "public";
 
   return (

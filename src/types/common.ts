@@ -1,7 +1,7 @@
 export interface RestResponse<T> {
+  statusCode: number;
+  message: string;
   data: T;
-  code: string;
-  messages: string;
 }
 
 export enum CoreService {
@@ -26,7 +26,7 @@ export interface ApiSpec {
 }
 
 export interface RestError {
-  status: number;
+  statusCode: number;
   message: string;
 }
 
