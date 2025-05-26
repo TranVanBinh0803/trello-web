@@ -15,32 +15,6 @@ export const useCreateCard = () => {
       queryClient.invalidateQueries({
         queryKey: [getABoardApiSpec.name, variables.boardId],
       });
-    //   queryClient.setQueryData(
-    //     [getABoardApiSpec.name, variables.boardId],
-    //     (oldData: any) => {
-    //       if (!oldData?.data) return oldData;
-
-    //       const newCard = response.data;
-    //       const updatedColumns = oldData.data.columns.map((col: ColumnType) => {
-    //         if (col._id === variables.columnId) {
-    //           return {
-    //             ...col,
-    //             cards: [...col.cards, newCard],
-    //             cardOrderIds: [...col.cardOrderIds, newCard._id],
-    //           };
-    //         }
-    //         return col;
-    //       });
-
-    //       return {
-    //         ...oldData,
-    //         data: {
-    //           ...oldData.data,
-    //           columns: updatedColumns,
-    //         },
-    //       };
-    //     }
-    //   );
     },
     onError: (error) => {
       toast.error(error?.message || "Failed to create card. Please try again.");

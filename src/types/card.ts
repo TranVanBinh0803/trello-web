@@ -8,6 +8,7 @@ export interface CardType {
   comments?: { id: string; content: string }[];
   attachments?: { id: string; name: string }[];
   FE_PlaceholderCard?: boolean;
+  sortable?: Object;
 };
 
 export type CardProps = {

@@ -26,17 +26,20 @@ import Column from "./ListColumns/Column/Column";
 import Card from "./ListColumns/Column/ListCards/Card/Card";
 import { useAtomValue } from "jotai";
 import { boardDataAtom } from "~/atoms/BoardAtom";
+import { useDragColumn } from "../api/useDragColumn";
+import { useDragCard } from "../api/useDragCard";
+import { useDragCardBetweenColumn } from "../api/useDragCardBetweenColumn";
 
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: "ACTIVE_DRAG_ITEM_TYPE_COLUMN",
   CARD: "ACTIVE_DRAG_ITEM_TYPE_CARD",
 } as const;
 
-type ActiveDragItemType = typeof ACTIVE_DRAG_ITEM_TYPE[keyof typeof ACTIVE_DRAG_ITEM_TYPE];
+type ActiveDragItemType =
+  (typeof ACTIVE_DRAG_ITEM_TYPE)[keyof typeof ACTIVE_DRAG_ITEM_TYPE];
 
-const BoardContent: React.FC<any>  = ({isFetching}) => {
-
-  const board = useAtomValue(boardDataAtom);  
+const BoardContent: React.FC<any> = ({ isFetching }) => {
+  const board = useAtomValue(boardDataAtom);
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -52,14 +55,24 @@ const BoardContent: React.FC<any>  = ({isFetching}) => {
   const sensors = useSensors(mouseSensor, touchSensor);
 
   const [orderedColumns, setOrderedColumns] = useState<ColumnType[]>([]);
-  const [activeDragItemId, setActiveDragItemId] = useState<UniqueIdentifier | null>(null);
-  const [activeDragItemType, setActiveDragItemType] = useState<ActiveDragItemType | null>(null);
+  const [activeDragItemId, setActiveDragItemId] =
+    useState<UniqueIdentifier | null>(null);
+  const [activeDragItemType, setActiveDragItemType] =
+    useState<ActiveDragItemType | null>(null);
   const [activeDragItemData, setActiveDragItemData] = useState<any>(null);
   const [oldColumn, setOldColumn] = useState<ColumnType | null>(null);
 
+  const dragColumnMutation = useDragColumn(board?._id || "");
+  const dragCardMutation = useDragCard();
+  const dragCardBetweenColumnMutation = useDragCardBetweenColumn();
+
   useEffect(() => {
-    setOrderedColumns(mapOrder(board?.columns, board?.columnOrderIds, "_id"));
+    if (board?.columns && board?.columnOrderIds) {
+      setOrderedColumns(mapOrder(board.columns, board.columnOrderIds, "_id"));
+    }
   }, [board]);
+
+  if (!board) return null;
 
   const findColumnByCardId = (cardId: string): ColumnType | undefined => {
     return orderedColumns.find((column) =>
@@ -89,7 +102,7 @@ const BoardContent: React.FC<any>  = ({isFetching}) => {
       newCardIndex =
         overCardIndex !== undefined && overCardIndex >= 0
           ? overCardIndex + modifier
-          : (overColumn?.cards?.length ?? 0);
+          : overColumn?.cards?.length ?? 0;
 
       const nextColumns = cloneDeep(prevColumns);
       const nextActiveColumn = nextColumns.find(
@@ -128,7 +141,6 @@ const BoardContent: React.FC<any>  = ({isFetching}) => {
           (card) => card._id
         );
       }
-
       return nextColumns;
     });
   };
@@ -178,6 +190,7 @@ const BoardContent: React.FC<any>  = ({isFetching}) => {
     const { active, over } = event;
     if (!active || !over) return;
 
+    // Drag card
     if (activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD) {
       const activeDraggingCardId = active.id as string;
       const activeDraggingCardData = active.data.current as CardType;
@@ -188,6 +201,7 @@ const BoardContent: React.FC<any>  = ({isFetching}) => {
 
       if (!activeColumn || !overColumn || !oldColumn) return;
 
+      // Drag card between column
       if (oldColumn._id !== overColumn._id) {
         moveCardBetweenDifferentColumns(
           overColumn,
@@ -198,6 +212,14 @@ const BoardContent: React.FC<any>  = ({isFetching}) => {
           activeDraggingCardId,
           activeDraggingCardData
         );
+
+        dragCardBetweenColumnMutation.mutate({
+          oldColumnId: oldColumn._id,
+          oldCardOrderIds: oldColumn.cardOrderIds.filter(id => id !== activeDraggingCardId),
+          newColumnId: overColumn._id,
+          newCardOrderIds: overColumn.cardOrderIds,
+          cardId: activeDraggingCardId,
+        });
       } else {
         const oldCardIndex = oldColumn.cards.findIndex(
           (c) => c._id === activeDragItemId
@@ -222,11 +244,18 @@ const BoardContent: React.FC<any>  = ({isFetching}) => {
           targetColumn.cards = dndOrderedCards;
           targetColumn.cardOrderIds = dndOrderedCards.map((card) => card._id);
 
+          if (oldColumn?._id) {
+            dragCardMutation.mutate({
+              columnId: oldColumn._id,
+              cardOrderIds: targetColumn.cardOrderIds,
+            });
+          }
           return nextColumns;
         });
       }
     }
 
+    // Drag Column
     if (
       activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN &&
       active.id !== over.id
@@ -242,7 +271,15 @@ const BoardContent: React.FC<any>  = ({isFetching}) => {
         newColumnIndex
       );
 
+      const columnOrderIds = dndOrderedColumns.map((column) => column._id);
+
       setOrderedColumns(dndOrderedColumns);
+
+      if (board?._id) {
+        dragColumnMutation.mutate({
+          columnOrderIds: columnOrderIds,
+        });
+      }
     }
 
     setActiveDragItemId(null);
@@ -279,27 +316,28 @@ const BoardContent: React.FC<any>  = ({isFetching}) => {
           alignItems: isFetching ? "center" : "flex-start",
           justifyContent: isFetching ? "center" : "flex-start",
         }}
-       
       >
         {isFetching ? (
-        <CircularProgress />
-      ) : (
-        <>
-          <ListColumns columns={orderedColumns} />
+          <CircularProgress />
+        ) : (
+          <>
+            <ListColumns columns={orderedColumns} />
 
-          <DragOverlay dropAnimation={dropAnimation}>
-            {activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN && activeDragItemData ? (
-              <Column
-                isDragging
-                column={activeDragItemData as ColumnType}
-                isUsingDragOverlay
-              />
-            ) : activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD && activeDragItemData ? (
-              <Card card={activeDragItemData as CardType} isDragging />
-            ) : null}
-          </DragOverlay>
-        </>
-      )}
+            <DragOverlay dropAnimation={dropAnimation}>
+              {activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN &&
+              activeDragItemData ? (
+                <Column
+                  isDragging
+                  column={activeDragItemData as ColumnType}
+                  isUsingDragOverlay
+                />
+              ) : activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD &&
+                activeDragItemData ? (
+                <Card card={activeDragItemData as CardType} isDragging />
+              ) : null}
+            </DragOverlay>
+          </>
+        )}
       </Box>
     </DndContext>
   );

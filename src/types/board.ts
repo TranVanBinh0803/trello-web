@@ -12,7 +12,7 @@ export interface BoardType {
   ownerIds?: string[]; 
   memberIds?: string[];
   columnOrderIds: string[];
-  columns: ColumnType[];
+  columns?: ColumnType[];
 };
 
 export type BoardBarProps = {

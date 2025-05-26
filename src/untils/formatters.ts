@@ -1,6 +1,4 @@
-import { ColumnType } from "~/types/column"
-
-export const generatePlaceholderCard = (column: ColumnType) => {
+export const generatePlaceholderCard = (column: any) => {
     return {
       _id: `${column._id}-placeholder-card`,
       boardId: column.boardId,

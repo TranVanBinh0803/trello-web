@@ -73,14 +73,14 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
       return;
     }
 
-    const newColumnData = {
+    const newCardData = {
       title: newCardTitle,
       boardId: "682aec06ccbbf399b8a14ea5",
       columnId: column._id,
     };
 
     try {
-      createCardApi.mutate(newColumnData);
+      createCardApi.mutate(newCardData);
       toggleOpenNewCardForm();
       setNewCardTitle("");
     } catch (error) {
