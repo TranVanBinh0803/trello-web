@@ -10,6 +10,7 @@ import {
   Tooltip,
   Button,
   TextField,
+  useTheme,
 } from "@mui/material";
 import {
   AddCard,
@@ -19,16 +20,18 @@ import {
   DeleteForever,
   DragHandle,
 } from "@mui/icons-material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import ListCards from "./ListCards/ListCards";
 import { mapOrder } from "~/untils/sorts";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "react-toastify";
-import { ColumnProps } from "~/types/column";
+import { ColumnProps, ColumnType } from "~/types/column";
 import { useCreateCard } from "~/pages/Boards/api/useCreateCard";
+import { useArchiveColumn } from "~/pages/Boards/api/useArchiveColumn";
 
 const Column: React.FC<ColumnProps> = ({ column }) => {
+  const theme = useTheme();
   const {
     attributes,
     listeners,
@@ -88,6 +91,12 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
     }
   };
 
+  const archiveColumnMutation = useArchiveColumn(column.boardId);
+
+  const handleArchiveColumn = (column: ColumnType) => {
+    archiveColumnMutation.mutate({ columnId: column._id });
+  };
+
   return (
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
       <Box
@@ -127,14 +136,26 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
 
           <Box>
             <Tooltip title="More options">
-              <ExpandMoreIcon
-                sx={{ color: "text.primary", cursor: "pointer" }}
-                id="basic-column-dropdown"
-                aria-controls={open ? "basic-menu-column-dropdown" : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? "true" : undefined}
-                onClick={handleClick}
-              />
+              <Box
+                sx={{
+                  padding: "3px",
+                  borderRadius: "8px",
+                  height: "32px",
+                  width: "32px",
+                  "&:hover": { backgroundColor: "#d0d4db" },
+                }}
+              >
+                <MoreHorizIcon
+                  sx={{ color: "text.primary", cursor: "pointer" }}
+                  id="basic-column-dropdown"
+                  aria-controls={
+                    open ? "basic-menu-column-dropdown" : undefined
+                  }
+                  aria-haspopup="true"
+                  aria-expanded={open ? "true" : undefined}
+                  onClick={handleClick}
+                />
+              </Box>
             </Tooltip>
 
             <Menu
@@ -152,26 +173,26 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
                 <ListItemIcon>
                   <AddCard fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>Add new card</ListItemText>
+                <ListItemText>
+                  <Box>Add new card</Box>
+                </ListItemText>
               </MenuItem>
               <MenuItem>
                 <ListItemIcon>
                   <ContentCut fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>Cut</ListItemText>
+                <ListItemText>
+                  <Box>Cut</Box>
+                </ListItemText>
               </MenuItem>
               <Divider />
               <MenuItem>
                 <ListItemIcon>
-                  <DeleteForever fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>Remove this column</ListItemText>
-              </MenuItem>
-              <MenuItem>
-                <ListItemIcon>
                   <Cloud fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>Archive this column</ListItemText>
+                <ListItemText onClick={() => handleArchiveColumn(column)}>
+                  <Box>Archive this column</Box>
+                </ListItemText>
               </MenuItem>
             </Menu>
           </Box>

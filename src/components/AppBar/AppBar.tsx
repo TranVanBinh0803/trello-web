@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   InputAdornment,
-  SvgIcon,
   TextField,
   Tooltip,
   Typography,
@@ -12,10 +11,6 @@ import React, { useState, ChangeEvent } from "react";
 import ModeSelect from "../ModeSelect/ModeSelect";
 import AppsIcon from "@mui/icons-material/Apps";
 // import { ReactComponent as TrelloIcon } from "~/assets/trello.svg?react";
-import Workspaces from "./Menus/Workspaces";
-import Recent from "./Menus/Recent";
-import Starred from "./Menus/Starred";
-import Templates from "./Menus/Templates";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
@@ -66,10 +61,7 @@ const AppBar: React.FC = () => {
           </Typography>
         </Box>
         <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
-          <Workspaces />
-          <Recent />
-          <Starred />
-          <Templates />
+          
           <Button variant="outlined" startIcon={<LibraryAddIcon />}>
             Create
           </Button>

@@ -12,8 +12,14 @@ export const createColumnApiSpec: ApiSpec = {
 
 export const dragCardApiSpec: ApiSpec = {
   name: "dragCard",
-  method: HttpMethod.PUT,
-  uri: "/columns",
+  method: HttpMethod.PATCH,
+  uri: "/columns/:id",
+};
+
+export const archiveCardApiSpec: ApiSpec = {
+  name: "archiveCard",
+  method: HttpMethod.DELETE,
+  uri: "/columns/:id",
 };
 
 export const dragCardBetweenColumnApiSpec: ApiSpec = {
@@ -35,23 +41,26 @@ export const createColumn = (request: createColumnRequest) =>
     .json<RestResponse<ColumnType>>();
 
 export type dragCardRequest = {
-  columnId: string,
   cardOrderIds: string[];
 };
 
-export type dragCardBetweenColumnRequest = {
-  oldColumnId: string,
-  oldCardOrderIds: string[];
-  newColumnId: string,
-  newCardOrderIds: string[];
-  cardId: string,
+export type archiveCardRequest = {
+  cardId: string;
 };
 
-export const dragCard = (request: dragCardRequest) =>
+export type dragCardBetweenColumnRequest = {
+  oldColumnId: string;
+  oldCardOrderIds: string[];
+  newColumnId: string;
+  newCardOrderIds: string[];
+  cardId: string;
+};
+
+export const dragCard = (columnId: string, request: dragCardRequest) =>
   restClient
-    .url(dragCardApiSpec.uri)
+    .url(dragCardApiSpec.uri.replace(":id", columnId))
     .json(request)
-    .put()
+    .patch()
     .json<RestResponse<ColumnType>>();
 
 export const dragCardBetweenColumn = (request: dragCardBetweenColumnRequest) =>
@@ -59,4 +68,11 @@ export const dragCardBetweenColumn = (request: dragCardBetweenColumnRequest) =>
     .url(dragCardBetweenColumnApiSpec.uri)
     .json(request)
     .put()
+    .json<RestResponse<ColumnType>>();
+
+export const archiveCard = (columnId: string, request: archiveCardRequest) =>
+  restClient
+    .url(archiveCardApiSpec.uri.replace(":id", columnId))
+    .json(request)
+    .delete()
     .json<RestResponse<ColumnType>>();

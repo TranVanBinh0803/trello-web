@@ -10,12 +10,22 @@ export const getABoardApiSpec: ApiSpec = {
 
 export const dragColumnApiSpec: ApiSpec = {
   name: 'dragColumn',
-  method: HttpMethod.PUT,
+  method: HttpMethod.PATCH,
+  uri: '/boards/:id',
+};
+
+export const archiveColumnApiSpec: ApiSpec = {
+  name: 'archiveColumn',
+  method: HttpMethod.DELETE,
   uri: '/boards/:id',
 };
 
 export type dragColumnRequest = {
   columnOrderIds: string[]
+};
+
+export type archiveColumnRequest = {
+  columnId: string
 };
 
 export const getABoard = (boardId: string) =>
@@ -28,5 +38,12 @@ export const dragColumn = (boardId: string, request: dragColumnRequest) =>
   restClient
     .url(dragColumnApiSpec.uri.replace(':id', boardId))
     .json(request)
-    .put()
+    .patch()
+    .json<RestResponse<BoardType>>();
+
+export const archiveColumn = (boardId: string, request: archiveColumnRequest) =>
+  restClient
+    .url(archiveColumnApiSpec.uri.replace(":id", boardId))
+    .json(request)
+    .delete()
     .json<RestResponse<BoardType>>();

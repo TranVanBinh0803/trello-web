@@ -61,9 +61,10 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
     useState<ActiveDragItemType | null>(null);
   const [activeDragItemData, setActiveDragItemData] = useState<any>(null);
   const [oldColumn, setOldColumn] = useState<ColumnType | null>(null);
+  const [dragCardColumnId, setDragCardColumnId] = useState<string>("");
 
   const dragColumnMutation = useDragColumn(board?._id || "");
-  const dragCardMutation = useDragCard();
+  const dragCardMutation = useDragCard(dragCardColumnId);
   const dragCardBetweenColumnMutation = useDragCardBetweenColumn();
 
   useEffect(() => {
@@ -89,59 +90,77 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
     activeDraggingCardId: string,
     activeDraggingCardData: CardType
   ) => {
-    setOrderedColumns((prevColumns) => {
-      const overCardIndex = overColumn?.cards?.findIndex(
-        (card) => card._id === overCardId
-      );
-
-      let newCardIndex: number;
-      const isBellowOverItem =
-        active.rect.current?.translated &&
-        active.rect.current.translated.top > over.rect.top + over.rect.height;
-      const modifier = isBellowOverItem ? 1 : 0;
-      newCardIndex =
-        overCardIndex !== undefined && overCardIndex >= 0
-          ? overCardIndex + modifier
-          : overColumn?.cards?.length ?? 0;
-
-      const nextColumns = cloneDeep(prevColumns);
-      const nextActiveColumn = nextColumns.find(
-        (column) => column._id === activeColumn._id
-      );
-      const nextOverColumn = nextColumns.find(
-        (column) => column._id === overColumn._id
-      );
-
-      if (nextActiveColumn) {
-        nextActiveColumn.cards = nextActiveColumn.cards.filter(
-          (card) => card._id !== activeDraggingCardId
+    return new Promise<{
+      newActiveColumnCardOrderIds: string[];
+      newOverColumnCardOrderIds: string[];
+    }>((resolve) => {
+      setOrderedColumns((prevColumns) => {
+        const overCardIndex = overColumn?.cards?.findIndex(
+          (card) => card._id === overCardId
         );
-        if (isEmpty(nextActiveColumn.cards)) {
-          nextActiveColumn.cards = [generatePlaceholderCard(nextActiveColumn)];
+
+        let newCardIndex: number;
+        const isBellowOverItem =
+          active.rect.current?.translated &&
+          active.rect.current.translated.top > over.rect.top + over.rect.height;
+        const modifier = isBellowOverItem ? 1 : 0;
+        newCardIndex =
+          overCardIndex !== undefined && overCardIndex >= 0
+            ? overCardIndex + modifier
+            : overColumn?.cards?.length ?? 0;
+
+        const nextColumns = cloneDeep(prevColumns);
+        const nextActiveColumn = nextColumns.find(
+          (column) => column._id === activeColumn._id
+        );
+        const nextOverColumn = nextColumns.find(
+          (column) => column._id === overColumn._id
+        );
+
+        if (nextActiveColumn) {
+          nextActiveColumn.cards = nextActiveColumn.cards.filter(
+            (card) => card._id !== activeDraggingCardId
+          );
+          if (isEmpty(nextActiveColumn.cards)) {
+            nextActiveColumn.cards = [
+              generatePlaceholderCard(nextActiveColumn),
+            ];
+          }
+          nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(
+            (card) => card._id
+          );
         }
-        nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(
-          (card) => card._id
-        );
-      }
-      if (nextOverColumn) {
-        nextOverColumn.cards = nextOverColumn.cards.filter(
-          (card) => card._id !== activeDraggingCardId
-        );
+        if (nextOverColumn) {
+          nextOverColumn.cards = nextOverColumn.cards.filter(
+            (card) => card._id !== activeDraggingCardId
+          );
 
-        nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, {
-          ...activeDraggingCardData,
-          columnId: nextOverColumn._id,
+          nextOverColumn.cards = nextOverColumn.cards.toSpliced(
+            newCardIndex,
+            0,
+            {
+              ...activeDraggingCardData,
+              columnId: nextOverColumn._id,
+            }
+          );
+
+          nextOverColumn.cards = nextOverColumn.cards.filter(
+            (card) => !card.FE_PlaceholderCard
+          );
+
+          nextOverColumn.cardOrderIds = nextOverColumn.cards.map(
+            (card) => card._id
+          );
+        }
+
+        // Resolve với cardOrderIds mới được cập nhật
+        resolve({
+          newActiveColumnCardOrderIds: nextActiveColumn?.cardOrderIds || [],
+          newOverColumnCardOrderIds: nextOverColumn?.cardOrderIds || [],
         });
 
-        nextOverColumn.cards = nextOverColumn.cards.filter(
-          (card) => !card.FE_PlaceholderCard
-        );
-
-        nextOverColumn.cardOrderIds = nextOverColumn.cards.map(
-          (card) => card._id
-        );
-      }
-      return nextColumns;
+        return nextColumns;
+      });
     });
   };
 
@@ -154,7 +173,9 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
     );
     setActiveDragItemData(event.active.data.current);
     if (event.active.data.current?.columnId) {
-      setOldColumn(findColumnByCardId(event.active.id as string) ?? null);
+      const foundColumn = findColumnByCardId(event.active.id as string);
+      setOldColumn(foundColumn ?? null);
+      setDragCardColumnId(foundColumn?._id || "");
     }
   };
 
@@ -186,7 +207,7 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!active || !over) return;
 
@@ -203,21 +224,22 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
 
       // Drag card between column
       if (oldColumn._id !== overColumn._id) {
-        moveCardBetweenDifferentColumns(
-          overColumn,
-          overCardId,
-          active,
-          over,
-          activeColumn,
-          activeDraggingCardId,
-          activeDraggingCardData
-        );
+        const { newActiveColumnCardOrderIds, newOverColumnCardOrderIds } =
+          await moveCardBetweenDifferentColumns(
+            overColumn,
+            overCardId,
+            active,
+            over,
+            activeColumn,
+            activeDraggingCardId,
+            activeDraggingCardData
+          );
 
         dragCardBetweenColumnMutation.mutate({
           oldColumnId: oldColumn._id,
-          oldCardOrderIds: oldColumn.cardOrderIds.filter(id => id !== activeDraggingCardId),
+          oldCardOrderIds: newActiveColumnCardOrderIds,
           newColumnId: overColumn._id,
-          newCardOrderIds: overColumn.cardOrderIds,
+          newCardOrderIds: newOverColumnCardOrderIds,
           cardId: activeDraggingCardId,
         });
       } else {
@@ -243,10 +265,8 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
 
           targetColumn.cards = dndOrderedCards;
           targetColumn.cardOrderIds = dndOrderedCards.map((card) => card._id);
-
           if (oldColumn?._id) {
             dragCardMutation.mutate({
-              columnId: oldColumn._id,
               cardOrderIds: targetColumn.cardOrderIds,
             });
           }
