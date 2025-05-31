@@ -1,17 +1,25 @@
 import { useMutation } from "@tanstack/react-query";
+import { useSetAtom } from "jotai";
 import { toast } from "react-toastify";
-import { queryClient } from "~/apis/queryClient";
-import { archiveColumn, archiveColumnRequest, getABoardApiSpec } from "~/apis/services/board/Board";
+import { archiveColumn, archiveColumnRequest} from "~/apis/services/board/Board";
+import { boardDataAtom } from "~/atoms/BoardAtom";
 import { RestError, RestResponse } from "~/types/common";
 
 export const useArchiveColumn = (boardId: string) => {
+  const setBoardData = useSetAtom(boardDataAtom);
   return useMutation<RestResponse<any>, RestError, archiveColumnRequest>({
     mutationFn: (request) => archiveColumn(boardId, request),
-    onSuccess: (response, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: [getABoardApiSpec.name, boardId],
+    onMutate: async (request) => {
+      const { columnId } = request;
+      setBoardData((prevBoard) => {
+        if (!prevBoard) return prevBoard;
+        const updatedColumns = (prevBoard.columns || []).filter(column => column._id !== columnId);
+        return {
+          ...prevBoard,
+          columns: updatedColumns,
+        };
       });
-      toast.success("Column archived successfully!");
+      return columnId; 
     },
     onError: (error) => {
       toast.error(
