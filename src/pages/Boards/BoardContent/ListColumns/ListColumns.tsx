@@ -9,7 +9,7 @@ import {
 import { Close } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { ListColumnsProps } from "~/types/column";
-import { useCreateColumn } from "../../api/useCreateColumn";
+import { useCreateColumn } from "./api/useCreateColumn";
 
 const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false);

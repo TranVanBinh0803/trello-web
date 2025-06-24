@@ -37,12 +37,6 @@ export const useArchiveCard = (columnId: string) => {
 
       return { cardId }; 
     },
-    // onSuccess: (response, variables) => {
-    //   queryClient.invalidateQueries({
-    //     queryKey: [getABoardApiSpec.name, "682aec06ccbbf399b8a14ea5"],
-    //   });
-    //   toast.success("Card archived successfully!");
-    // },
     onError: (error) => {
       toast.error(
         error?.message || "Failed to archive card. Please try again."

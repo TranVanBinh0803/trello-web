@@ -2,6 +2,7 @@ export interface CardType {
   _id: string;
   boardId: string;
   columnId: string;
+  description?: string;
   title?: string;
   cover?: string;
   memberIds?: string[];

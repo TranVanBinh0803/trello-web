@@ -37,7 +37,7 @@ const ListCards: React.FC<ListCardsProps> = ({ cards }) => {
         }}
       >
         {cards?.map((card) => (
-          <Card key={card._id} card={card} />
+          <Card key={card._id} card={card}/>
         ))}
       </Box>
     </SortableContext>

@@ -26,9 +26,9 @@ import Column from "./ListColumns/Column/Column";
 import Card from "./ListColumns/Column/ListCards/Card/Card";
 import { useAtomValue } from "jotai";
 import { boardDataAtom } from "~/atoms/BoardAtom";
-import { useDragColumn } from "../api/useDragColumn";
-import { useDragCard } from "../api/useDragCard";
-import { useDragCardBetweenColumn } from "../api/useDragCardBetweenColumn";
+import { useDragColumn } from "./api/useDragColumn";
+import { useDragCard } from "./api/useDragCard";
+import { useDragCardBetweenColumn } from "./api/useDragCardBetweenColumn";
 
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: "ACTIVE_DRAG_ITEM_TYPE_COLUMN",
@@ -153,7 +153,6 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
           );
         }
 
-        // Resolve với cardOrderIds mới được cập nhật
         resolve({
           newActiveColumnCardOrderIds: nextActiveColumn?.cardOrderIds || [],
           newOverColumnCardOrderIds: nextOverColumn?.cardOrderIds || [],

@@ -27,8 +27,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "react-toastify";
 import { ColumnProps, ColumnType } from "~/types/column";
-import { useCreateCard } from "~/pages/Boards/api/useCreateCard";
-import { useArchiveColumn } from "~/pages/Boards/api/useArchiveColumn";
+import { useCreateCard } from "./api/useCreateCard";
+import { useArchiveColumn } from "./api/useArchiveColumn";
+import { useAtomValue } from "jotai";
+import { manageModalAtom } from "~/atoms/ManageModalAtom";
 
 const Column: React.FC<ColumnProps> = ({ column }) => {
   const theme = useTheme();
@@ -63,6 +65,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
 
   const [openNewCardForm, setOpenNewCardForm] = useState<boolean>(false);
   const [newCardTitle, setNewCardTitle] = useState<string>("");
+  const manageModal = useAtomValue(manageModalAtom);
 
   const toggleOpenNewCardForm = () => {
     setOpenNewCardForm((prev) => !prev);
@@ -97,10 +100,12 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
     archiveColumnMutation.mutate({ columnId: column._id });
   };
 
+  const dragListeners = manageModal ? {} : listeners;
+
   return (
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
       <Box
-        {...listeners}
+        {...dragListeners}
         sx={{
           minWidth: 300,
           maxWidth: 300,
@@ -199,7 +204,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
         </Box>
 
         {/* List cards */}
-        <ListCards cards={orderedCards} />
+        <ListCards cards={orderedCards}/>
 
         {/* Footer */}
         <Box sx={{ height: (theme) => theme.trello.columnFooterHeight, p: 2 }}>
