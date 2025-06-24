@@ -1,6 +1,4 @@
-import { cyan, deepOrange, orange, teal } from "@mui/material/colors";
 import { createTheme, ThemeOptions } from "@mui/material/styles";
-import { Components } from "@mui/material/styles/components";
 import { PaletteOptions } from "@mui/material";
 
 // --- Bổ sung type mở rộng cho `trello` ---
@@ -35,14 +33,52 @@ const theme = createTheme({
   colorSchemes: {
     light: {
       palette: {
-        primary: teal,
-        secondary: deepOrange,
+        primary: {
+          main: "#172b4d",
+          light: "#42526e",
+          dark: "#091e42",
+          contrastText: "#ffffff",
+        },
+        secondary: {
+          main: "#6b778c",
+          light: "#8993a4",
+          dark: "#5e6c84",
+          contrastText: "#ffffff",
+        },
+        background: {
+          default: "#f4f5f7",
+          paper: "#ffffff",
+        },
+        text: {
+          primary: "#172b4d",
+          secondary: "#5e6c84",
+        },
+        divider: "#dfe1e6",
       } as PaletteOptions,
     },
     dark: {
       palette: {
-        primary: cyan,
-        secondary: orange,
+        primary: {
+          main: "#b6c2cf",
+          light: "#dfe1e6",
+          dark: "#9fadbc",
+          contrastText: "#1d2125",
+        },
+        secondary: {
+          main: "#8c9bab",
+          light: "#b6c2cf",
+          dark: "#738496",
+          contrastText: "#1d2125",
+        },
+        background: {
+          default: "#1d2125",
+          paper: "#22272b",
+        },
+        text: {
+          primary: "#b6c2cf",
+          secondary: "#8c9bab",
+        },
+        divider: "#454f59",
       } as PaletteOptions,
     },
   },
@@ -66,7 +102,7 @@ const theme = createTheme({
             borderRadius: "8px",
           },
           "*::-webkit-scrollbar-thumb:hover": {
-            backgroundColor: "#3498db",
+            backgroundColor: "#95a5a6",
           },
         },
       },
@@ -81,7 +117,7 @@ const theme = createTheme({
     MuiInputLabel: {
       styleOverrides: {
         root: ({ theme }) => ({
-          color: theme.palette.primary.main,
+          color: theme.palette.text.primary,
           fontSize: "0.875rem",
         }),
       },
@@ -89,7 +125,7 @@ const theme = createTheme({
     MuiTypography: {
       styleOverrides: {
         root: ({ theme }) => ({
-          color: theme.palette.primary.main,
+          color: theme.palette.text.primary,
           "&.MuiTypography-body1": { fontSize: "0.875rem" },
         }),
       },
@@ -97,12 +133,17 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: ({ theme }) => ({
-          color: theme.palette.primary.main,
+          color: theme.palette.text.primary,
           fontSize: "0.875rem",
           ".MuiOutlinedInput-notchedOutline": {
-            borderColor: theme.palette.primary.light,
+            borderColor: theme.palette.divider,
           },
           "&:hover": {
+            ".MuiOutlinedInput-notchedOutline": {
+              borderColor: theme.palette.text.primary,
+            },
+          },
+          "&.Mui-focused": {
             ".MuiOutlinedInput-notchedOutline": {
               borderColor: theme.palette.primary.main,
             },
@@ -113,6 +154,33 @@ const theme = createTheme({
         }),
       },
     },
+    MuiCard: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          border: `1px solid ${theme.palette.divider}`,
+        }),
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+        }),
+      },
+    },
+    // MuiModal: {
+    //   styleOverrides: {
+    //     root: () => ({
+    //       ".MuiBox-root": {
+    //         padding: 0,
+    //       },
+    //     }),
+    //   },
+    // },
   },
 } as ThemeOptions);
 

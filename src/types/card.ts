@@ -2,7 +2,7 @@ export interface CardType {
   _id: string;
   boardId: string;
   columnId: string;
-  description?: string;
+  description?: string | TrustedHTML;
   title?: string;
   cover?: string;
   memberIds?: string[];

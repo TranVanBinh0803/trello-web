@@ -10,14 +10,12 @@ import {
   Tooltip,
   Button,
   TextField,
-  useTheme,
 } from "@mui/material";
 import {
   AddCard,
   Close,
   Cloud,
   ContentCut,
-  DeleteForever,
   DragHandle,
 } from "@mui/icons-material";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -33,7 +31,6 @@ import { useAtomValue } from "jotai";
 import { manageModalAtom } from "~/atoms/ManageModalAtom";
 
 const Column: React.FC<ColumnProps> = ({ column }) => {
-  const theme = useTheme();
   const {
     attributes,
     listeners,
