@@ -3,7 +3,6 @@ import {
   Modal,
   Box,
   Typography,
-  Radio,
   Button,
   Grid,
   Tooltip,
@@ -12,9 +11,7 @@ import {
 import { CardType } from "~/types/card";
 import {
   Add,
-  AttachFile,
   Attachment,
-  ChatOutlined,
   Notes,
   PersonAdd,
   RadioButtonChecked,
@@ -24,7 +21,8 @@ import {
 } from "@mui/icons-material";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import CommentItem from "./CommentItem";
+import FileList, { mockFileList } from "./FileList";
+import CommentList, { mockCommentList } from "./CommentList";
 interface CardModalProps {
   open: boolean;
   onClose: () => void;
@@ -34,7 +32,6 @@ interface CardModalProps {
 const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
   const [value, setValue] = useState("<p>Hello <strong>world</strong></p>");
   const [isOpenDescription, setIsOpenDescription] = useState(false);
-  const [isAddComment, setIsAddComment] = useState(false);
 
   const modalStyles = {
     position: "absolute",
@@ -178,28 +175,7 @@ const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
                     Add a more detailed description...
                   </Button>
                 )}
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mt: 1,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      marginLeft: 1,
-                    }}
-                  >
-                    <Attachment fontSize="small" />
-                    <Typography variant="body2">Attachments</Typography>
-                  </Box>
-
-                  <Button variant="outlined">Add</Button>
-                </Box>
+                <FileList files={mockFileList}/>
               </Box>
             </Grid>
             <Grid size={5}>
@@ -210,73 +186,7 @@ const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
                   pr: 1,
                 }}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mt: 1,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      marginLeft: 1,
-                    }}
-                  >
-                    <ChatOutlined fontSize="small" />
-                    <Typography variant="body2">
-                      Comments and activity
-                    </Typography>
-                  </Box>
-                  <Button variant="outlined">Show Details</Button>
-                </Box>
-                {!isAddComment && (
-                  <Button
-                    variant="outlined"
-                    sx={{ width: "100%", justifyContent: "flex-start", mt: 1 }}
-                    onClick={() => setIsAddComment(true)}
-                  >
-                    White a comment...
-                  </Button>
-                )}
-                <Box mt={1}>
-                  {isAddComment && (
-                    <Box mb={1}>
-                      <ReactQuill
-                        theme="snow"
-                        value={value}
-                        onChange={setValue}
-                      />
-                      <Box sx={{ display: "flex", mt: 1, gap: 2 }}>
-                        <Button variant="contained">Save</Button>
-                        <Button
-                          variant="outlined"
-                          onClick={() => setIsAddComment(false)}
-                        >
-                          Cancel
-                        </Button>
-                      </Box>
-                    </Box>
-                  )}
-                  <CommentItem
-                    authorName="Trần Văn Bình"
-                    content="Comment edit"
-                    createdAt="2025-05-26T15:00:00Z"
-                    // isEdited={true}
-                    isComment={true}
-                    onEdit={() => console.log("Edit")}
-                    onDelete={() => console.log("Delete")}
-                  />
-                  <CommentItem
-                    authorName="Nguyễn Văn An"
-                    content="added this card to 🎉 Done"
-                    createdAt="2025-05-26T14:32:00Z"
-                    isComment={false}
-                  />
-                </Box>
+                <CommentList comments={mockCommentList}/>
               </Box>
             </Grid>
           </Grid>

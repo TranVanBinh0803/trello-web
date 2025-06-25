@@ -1,9 +1,8 @@
 import { restClient } from '~/apis/restClient';
 import { ApiSpec, HttpMethod, RestResponse } from '~/types/common';
 
-
 /**
- * createToken
+ * Login
  */
 export const loginApiSpec: ApiSpec = {
   name: 'login',
@@ -12,7 +11,7 @@ export const loginApiSpec: ApiSpec = {
 };
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -20,8 +19,6 @@ export interface LoginResponse {
   accessToken: string;
   expiresInSecs: number;
 }
-
-
 
 /**
  * signOut
@@ -31,7 +28,6 @@ export const signOutApiSpec: ApiSpec = {
   method: HttpMethod.POST,
   uri: '/auth/sign-out',
 };
-
 
 export const login = (request: LoginRequest) =>
   restClient

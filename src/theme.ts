@@ -46,11 +46,11 @@ const theme = createTheme({
           contrastText: "#ffffff",
         },
         background: {
-          default: "#f4f5f7",
-          paper: "#ffffff",
+          default: "#ffffff",
+          paper: "#f4f5f7",
         },
         text: {
-          primary: "#172b4d",
+          primary: "#000000",
           secondary: "#5e6c84",
         },
         divider: "#dfe1e6",
@@ -71,7 +71,7 @@ const theme = createTheme({
           contrastText: "#1d2125",
         },
         background: {
-          default: "#1d2125",
+          default: "#000000",
           paper: "#22272b",
         },
         text: {

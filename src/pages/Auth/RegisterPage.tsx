@@ -10,24 +10,31 @@ import {
   Stack,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import {
-  FacebookIcon,
-  GoogleIcon,
-} from "./components/CustomIcons";
-import { useSetAtom } from "jotai";
+import { FacebookIcon, GoogleIcon } from "./components/CustomIcons";
 import { useNavigate } from "react-router-dom";
-import { accessTokenAtom, accessTokenExpiresAtAtom } from "~/atoms/AuthAtoms";
-import { useLogin } from "./api/useLogin";
-import dayjs from "dayjs";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-const formSchema = z.object({
-  email: z.string().email("Invalid email").nonempty("Email is required"),
-  password: z.string().nonempty("Password is required"),
-});
+const formSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(20, "Username must be at most 20 characters")
+      .nonempty("Username is required"),
+    email: z.string().email("Invalid email").nonempty("Email is required"),
+    password: z
+      .string()
+      .min(6, "Password must be at least 6 characters")
+      .nonempty("Password is required"),
+    confirmPassword: z.string().nonempty("Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -48,7 +55,7 @@ const Card = styled("div")(({ theme }) => ({
     "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
 }));
 
-const SignInContainer = styled(Stack)(({ theme }) => ({
+const SignUpContainer = styled(Stack)(({ theme }) => ({
   height: "100vh",
   padding: theme.spacing(2),
   justifyContent: "center",
@@ -57,12 +64,8 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
     "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
 }));
 
-export default function LoginPage() {
-  const setAccessToken = useSetAtom(accessTokenAtom);
-  const setAccessTokenExpiresAt = useSetAtom(accessTokenExpiresAtAtom);
+export default function RegisterPage() {
   const navigate = useNavigate();
-  const loginMutation = useLogin();
-
   const {
     register,
     handleSubmit,
@@ -70,39 +73,30 @@ export default function LoginPage() {
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      username: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
   const onSubmit = async (data: FormValues) => {
     try {
-      // const res = await loginMutation.mutateAsync({
-      //   email: data.email,
-      //   password: data.password,
-      // });
-      // setAccessToken(res.data.accessToken);
-      // const expiresAt = dayjs()
-      //   .add(res.data.expiresInSecs, "seconds")
-      //   .toISOString();
-      // setAccessTokenExpiresAt(expiresAt);
-      setAccessToken("string");
-      setAccessTokenExpiresAt("3600");
       navigate("/");
     } catch (err) {
-      console.error("Login failed", err);
+      console.error("Register failed", err);
     }
   };
 
   return (
-    <SignInContainer>
+    <SignUpContainer>
       <Card>
         <Typography
           component="h1"
           variant="h4"
           sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
         >
-          Sign in
+          Sign up
         </Typography>
         <Box
           component="form"
@@ -114,6 +108,14 @@ export default function LoginPage() {
             gap: 2,
           }}
         >
+          <TextField
+            label="User Name"
+            fullWidth
+            autoComplete="username"
+            {...register("username")}
+            error={!!errors.username}
+            helperText={errors.username?.message}
+          />
           <TextField
             label="Email"
             type="email"
@@ -127,28 +129,32 @@ export default function LoginPage() {
             label="Password"
             type="password"
             fullWidth
-            autoComplete="current-password"
+            autoComplete="new-password"
             {...register("password")}
             error={!!errors.password}
             helperText={errors.password?.message}
           />
+          <TextField
+            label="Confirm Password"
+            type="password"
+            fullWidth
+            autoComplete="new-password"
+            {...register("confirmPassword")}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message}
+          />
           <FormControlLabel
             control={<Checkbox color="primary" />}
-            label="Remember me"
+            label="I agree to the Terms and Privacy Policy"
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            disabled={isSubmitting || loginMutation.isPending}
+            disabled={isSubmitting}
           >
-            {isSubmitting || loginMutation.isPending
-              ? "Signing in..."
-              : "Sign in"}
+            {isSubmitting ? "Signing up..." : "Sign up"}
           </Button>
-          <Link component="button" variant="body2">
-            Forgot your password?
-          </Link>
         </Box>
         <Divider>or</Divider>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -156,26 +162,26 @@ export default function LoginPage() {
             fullWidth
             variant="outlined"
             startIcon={<GoogleIcon />}
-            onClick={() => alert("Sign in with Google")}
+            onClick={() => alert("Sign up with Google")}
           >
-            Sign in with Google
+            Sign up with Google
           </Button>
           <Button
             fullWidth
             variant="outlined"
             startIcon={<FacebookIcon />}
-            onClick={() => alert("Sign in with Facebook")}
+            onClick={() => alert("Sign up with Facebook")}
           >
-            Sign in with Facebook
+            Sign up with Facebook
           </Button>
           <Typography sx={{ textAlign: "center" }}>
-            Don&apos;t have an account?{" "}
-            <Link href="/sign-up" variant="body2">
-              Sign up
+            Already have an account?{" "}
+            <Link href="/sign-in" variant="body2">
+              Sign in
             </Link>
           </Typography>
         </Box>
       </Card>
-    </SignInContainer>
+    </SignUpContainer>
   );
 }

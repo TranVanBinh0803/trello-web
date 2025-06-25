@@ -7,6 +7,7 @@ import {
   CardMedia,
   Tooltip,
   Box,
+  Checkbox,
 } from "@mui/material";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
@@ -15,6 +16,8 @@ import {
   Attachment,
   Comment,
   Group,
+  RadioButtonChecked,
+  RadioButtonUnchecked,
 } from "@mui/icons-material";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -34,7 +37,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
 
   const [openModal, setOpenModal] = React.useState(false);
   const setManageModal = useSetAtom(manageModalAtom);
-  
+
   const {
     attributes,
     listeners,
@@ -42,8 +45,8 @@ const Card: React.FC<CardProps> = ({ card }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
-    id: card._id, 
+  } = useSortable({
+    id: card._id,
     data: { ...card },
   });
 
@@ -51,7 +54,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
     setOpenModal(true);
     setManageModal(true);
   };
-  
+
   const handleCloseModal = () => {
     setOpenModal(false);
     setManageModal(false);
@@ -120,7 +123,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
         {...attributes}
         {...listeners}
         sx={{
-          cursor: openModal ? "default" : "pointer", 
+          cursor: openModal ? "default" : "pointer",
           boxShadow: "0 1px 1px rgba(0, 0, 0, 0.2)",
           overflow: "unset",
           opacity: card.FE_PlaceholderCard ? "0" : "1",
@@ -160,9 +163,15 @@ const Card: React.FC<CardProps> = ({ card }) => {
               alignItems: "center",
             }}
           >
-            <RadioButtonUncheckedIcon fontSize="small" />
+            <Tooltip title="Mark complete">
+              <Checkbox
+                size="small"
+                icon={<RadioButtonUnchecked />}
+                checkedIcon={<RadioButtonChecked />}
+              />
+            </Tooltip>
           </Box>
-          
+
           {isEditing ? (
             <input
               ref={inputRef}
@@ -192,7 +201,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
               {card?.title}
             </Typography>
           )}
-          
+
           {!isEditing && (
             <Tooltip title="Edit card">
               <Box
@@ -219,7 +228,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
               </Box>
             </Tooltip>
           )}
-          
+
           <CardMenu
             anchorEl={anchorEl}
             open={open}
