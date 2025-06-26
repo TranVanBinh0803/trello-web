@@ -20,7 +20,7 @@ function App() {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           {appRoutes}
-          <ToastContainer position="bottom-right" />
+          <ToastContainer position="bottom-right" autoClose={1000}/>
         </ThemeProvider>
         <JotaiDevTools store={store} />
       </JotaiProvider>

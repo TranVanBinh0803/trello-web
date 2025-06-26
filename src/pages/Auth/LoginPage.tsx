@@ -10,10 +10,7 @@ import {
   Stack,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import {
-  FacebookIcon,
-  GoogleIcon,
-} from "./components/CustomIcons";
+import { FacebookIcon, GoogleIcon } from "./components/CustomIcons";
 import { useSetAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
 import { accessTokenAtom, accessTokenExpiresAtAtom } from "~/atoms/AuthAtoms";
@@ -26,7 +23,10 @@ import { useForm } from "react-hook-form";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email").nonempty("Email is required"),
-  password: z.string().nonempty("Password is required"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .nonempty("Password is required"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -76,22 +76,16 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (data: FormValues) => {
-    try {
-      // const res = await loginMutation.mutateAsync({
-      //   email: data.email,
-      //   password: data.password,
-      // });
-      // setAccessToken(res.data.accessToken);
-      // const expiresAt = dayjs()
-      //   .add(res.data.expiresInSecs, "seconds")
-      //   .toISOString();
-      // setAccessTokenExpiresAt(expiresAt);
-      setAccessToken("string");
-      setAccessTokenExpiresAt("3600");
-      navigate("/");
-    } catch (err) {
-      console.error("Login failed", err);
-    }
+    const res = await loginMutation.mutateAsync({
+      email: data.email,
+      password: data.password,
+    });
+    setAccessToken(res.data.accessToken);
+    const expiresAt = dayjs()
+      .add(res.data.expiresInSecs, "seconds")
+      .toISOString();
+    setAccessTokenExpiresAt(expiresAt);
+    navigate("/");
   };
 
   return (
@@ -132,10 +126,6 @@ export default function LoginPage() {
             error={!!errors.password}
             helperText={errors.password?.message}
           />
-          <FormControlLabel
-            control={<Checkbox color="primary" />}
-            label="Remember me"
-          />
           <Button
             type="submit"
             fullWidth
@@ -170,7 +160,7 @@ export default function LoginPage() {
           </Button>
           <Typography sx={{ textAlign: "center" }}>
             Don&apos;t have an account?{" "}
-            <Link href="/sign-up" variant="body2">
+            <Link href="/register" variant="body2">
               Sign up
             </Link>
           </Typography>

@@ -16,25 +16,20 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useRegister } from "./api/useRegister";
 
-const formSchema = z
-  .object({
-    username: z
-      .string()
-      .min(3, "Username must be at least 3 characters")
-      .max(20, "Username must be at most 20 characters")
-      .nonempty("Username is required"),
-    email: z.string().email("Invalid email").nonempty("Email is required"),
-    password: z
-      .string()
-      .min(6, "Password must be at least 6 characters")
-      .nonempty("Password is required"),
-    confirmPassword: z.string().nonempty("Please confirm your password"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const formSchema = z.object({
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(20, "Username must be at most 20 characters")
+    .nonempty("Username is required"),
+  email: z.string().email("Invalid email").nonempty("Email is required"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .nonempty("Password is required"),
+});
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -65,7 +60,8 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function RegisterPage() {
-  const navigate = useNavigate();
+  const registerMutation = useRegister();
+
   const {
     register,
     handleSubmit,
@@ -76,16 +72,15 @@ export default function RegisterPage() {
       username: "",
       email: "",
       password: "",
-      confirmPassword: "",
     },
   });
 
   const onSubmit = async (data: FormValues) => {
-    try {
-      navigate("/");
-    } catch (err) {
-      console.error("Register failed", err);
-    }
+    await registerMutation.mutateAsync({
+      username: data.username,
+      email: data.email,
+      password: data.password,
+    });
   };
 
   return (
@@ -134,15 +129,6 @@ export default function RegisterPage() {
             error={!!errors.password}
             helperText={errors.password?.message}
           />
-          <TextField
-            label="Confirm Password"
-            type="password"
-            fullWidth
-            autoComplete="new-password"
-            {...register("confirmPassword")}
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword?.message}
-          />
           <FormControlLabel
             control={<Checkbox color="primary" />}
             label="I agree to the Terms and Privacy Policy"
@@ -176,7 +162,7 @@ export default function RegisterPage() {
           </Button>
           <Typography sx={{ textAlign: "center" }}>
             Already have an account?{" "}
-            <Link href="/sign-in" variant="body2">
+            <Link href="/login" variant="body2">
               Sign in
             </Link>
           </Typography>
