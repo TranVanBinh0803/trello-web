@@ -1,41 +1,79 @@
 import { Box, Button, Typography } from "@mui/material";
-import CommentItem from "./CommentItem";
 import { ChatOutlined } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactQuill from "react-quill-new";
-
-interface CommentItem {
-  id: string;
-  authorName: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { CardType, CommentType } from "~/types/card";
+import { useAtomValue } from "jotai";
+import { user } from "~/atoms/AuthAtoms";
+import { useAddComment } from "../api/useAddComment";
+import CommentItem from "./CommentItem";
+import { addCommentRequest } from "~/apis/services/card/Card";
+import { useUpdateComment } from "../api/useUpdateComment";
+import { useDeleteComment } from "../api/useDeleteComment";
 
 interface CommentListProps {
-  comments: CommentItem[];
+  comments: CommentType[];
+  card: CardType;
 }
 
-export const mockCommentList: CommentItem[] = [
-  {
-    id: "1",
-    authorName: "Trần Văn Bình",
-    content: "Comment edit",
-    createdAt: "2025-05-26T15:00:00Z",
-    updatedAt: "2025-05-26T14:00:00Z",
-  },
-  {
-    id: "2",
-    authorName: "Lê Thị Hoa",
-    content: "Looks good to me!",
-    createdAt: "2025-05-26T14:00:00Z",
-    updatedAt: "2025-05-26T14:00:00Z",
-  },
-];
-
-const CommentList: React.FC<CommentListProps> = ({ comments }) => {
-  const [value, setValue] = useState("<p>Hello <strong>world</strong></p>");
+const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
+  const [value, setValue] = useState("");
   const [isAddComment, setIsAddComment] = useState(false);
+  const [localComments, setLocalComments] = useState<CommentType[]>(comments);
+
+  const userAtom = useAtomValue(user);
+  const addCommentMutation = useAddComment(card._id);
+  const updateCommentMutation = useUpdateComment(card._id);
+  const deleteCommentMutation = useDeleteComment(card._id);
+
+  useEffect(() => {
+    setLocalComments(comments);
+  }, [comments]);
+
+  const handleAddComment = () => {
+    const commentRequest: addCommentRequest = {
+      authorName: userAtom?.username,
+      avatar: userAtom?.avatar,
+      content: value,
+    };
+
+    const newComment: CommentType = {
+      _id: Date.now().toString(),
+      authorName: commentRequest?.authorName ?? "Author Name",
+      avatar: commentRequest.avatar ?? "Avatar",
+      content: commentRequest.content,
+      createdAt: new Date().toISOString(),
+      updatedAt: null,
+    };
+
+    setLocalComments((prevComments) => [...prevComments, newComment]);
+    addCommentMutation.mutate(commentRequest);
+    setIsAddComment(false);
+    setValue("");
+  };
+
+  const handleUpdateComment = (commentId: string, updatedContent: string) => {
+    const newUpdatedAt = new Date().toISOString();
+
+    setLocalComments((prev) =>
+      prev.map((comment) =>
+        comment._id === commentId
+          ? { ...comment, content: updatedContent, updatedAt: newUpdatedAt }
+          : comment
+      )
+    );
+
+    updateCommentMutation.mutate({ commentId, content: updatedContent });
+  };
+
+  const handleDeleteComment = (commentId: string) => {
+    console.log("CommentId:", commentId);
+    setLocalComments((prev) =>
+      prev.filter((comment) => comment._id !== commentId)
+    );
+
+    deleteCommentMutation.mutate({ commentId });
+  };
 
   return (
     <Box>
@@ -60,35 +98,51 @@ const CommentList: React.FC<CommentListProps> = ({ comments }) => {
         </Box>
         <Button variant="outlined">Show Details</Button>
       </Box>
+
       {!isAddComment && (
         <Button
           variant="outlined"
           sx={{ width: "100%", justifyContent: "flex-start", mt: 1 }}
           onClick={() => setIsAddComment(true)}
         >
-          White a comment...
+          Write a comment...
         </Button>
       )}
+
       <Box mt={1}>
         {isAddComment && (
           <Box mb={1}>
             <ReactQuill theme="snow" value={value} onChange={setValue} />
             <Box sx={{ display: "flex", mt: 1, gap: 2 }}>
-              <Button variant="contained">Save</Button>
-              <Button variant="outlined" onClick={() => setIsAddComment(false)}>
+              <Button variant="contained" onClick={handleAddComment}>
+                Save
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setIsAddComment(false);
+                  setValue("");
+                }}
+              >
                 Cancel
               </Button>
             </Box>
           </Box>
         )}
       </Box>
-      {comments.map((comment) => (
+
+      {localComments?.map((comment) => (
         <CommentItem
-          key={comment.id}
+          key={comment._id}
           authorName={comment.authorName}
+          avatar={comment.avatar || ""}
           content={comment.content}
           createdAt={comment.createdAt}
-          updatedAt={comment.updatedAt}
+          updatedAt={comment.updatedAt || ""}
+          onDelete={() => handleDeleteComment(comment._id)}
+          onUpdate={(updatedContent) =>
+            handleUpdateComment(comment._id, updatedContent)
+          }
         />
       ))}
     </Box>

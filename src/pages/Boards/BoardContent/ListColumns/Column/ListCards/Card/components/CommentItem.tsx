@@ -3,48 +3,52 @@ import { Avatar, Box, Typography, Button, Stack } from "@mui/material";
 import { format } from "date-fns";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { HelperUtils } from "~/untils/helpers";
 
 interface CommentItemProps {
   authorName: string;
+  avatar: string | null;
   content: string;
   createdAt: string;
   updatedAt: string;
+  onUpdate: (newContent: string) => void;
+  onDelete: () => void;
 }
-
-const getInitials = (name: string) => {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-};
 
 const CommentItem: React.FC<CommentItemProps> = ({
   authorName,
+  avatar,
   content,
   createdAt,
   updatedAt,
+  onUpdate,
+  onDelete,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(content);
 
   const handleSave = () => {
+    if (editValue.trim() === "") return;
+    onUpdate(editValue);
     setIsEditing(false);
   };
 
-  const handleDelete = () => {};
-
   return (
     <Box display="flex" alignItems="flex-start" gap={2} mb={2}>
-      <Avatar sx={{ bgcolor: "#f4a261", fontSize: "small" }}>
-        {getInitials(authorName)}
-      </Avatar>
+      {avatar ? (
+        <Avatar alt={avatar} src={avatar}></Avatar>
+      ) : (
+        <Avatar sx={{ bgcolor: "#f4a261", fontSize: "small" }}>
+          {HelperUtils.getInitials(authorName)}
+        </Avatar>
+      )}
+
       <Box flex={1}>
         <Typography variant="subtitle2" fontWeight={600}>
           {authorName}{" "}
           <Typography variant="caption" color="text.secondary" component="span">
             {format(new Date(createdAt), "MMM dd, yyyy, h:mm a")}
-            {updatedAt !== createdAt && " (edited)"}
+            {!HelperUtils.isEmpty(updatedAt) && " (edited)"}
           </Typography>
         </Typography>
         {isEditing ? (
@@ -81,21 +85,25 @@ const CommentItem: React.FC<CommentItemProps> = ({
                 backgroundColor: "#fafafa",
               }}
             >
-              <div dangerouslySetInnerHTML={{ __html: content }} />
+              <Box
+                sx={{
+                  "& p": {
+                    margin: 0,
+                  },
+                }}
+                dangerouslySetInnerHTML={{ __html: content }}
+              />
             </Box>
             <Stack direction="row" spacing={2} mt={0.5}>
               <Button onClick={() => setIsEditing(true)} size="small">
                 Edit
               </Button>
-              <Button onClick={handleDelete} size="small">
+              <Button onClick={onDelete} size="small">
                 Delete
               </Button>
             </Stack>
           </>
         )}
-        {/* {!isEditing && (
-          
-        )} */}
       </Box>
     </Box>
   );

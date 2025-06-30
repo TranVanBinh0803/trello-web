@@ -1,3 +1,11 @@
+export interface CommentType {
+  _id: string;
+  authorName: string;
+  avatar: string | null;
+  content: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
 export interface CardType {
   _id: string;
   boardId: string;
@@ -6,7 +14,7 @@ export interface CardType {
   title?: string;
   cover?: string;
   memberIds?: string[];
-  comments?: { id: string; content: string }[];
+  comments?: CommentType[];
   attachments?: { id: string; name: string }[];
   FE_PlaceholderCard?: boolean;
   sortable?: Object;

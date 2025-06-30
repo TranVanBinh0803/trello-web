@@ -16,6 +16,7 @@ import {
   Attachment,
   Comment,
   Group,
+  Notes,
   RadioButtonChecked,
   RadioButtonUnchecked,
 } from "@mui/icons-material";
@@ -23,17 +24,17 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CardProps, CardType } from "~/types/card";
 import { useArchiveCard } from "./api/useArchiveCard";
-import { useUpdateTitle } from "./api/useUpdateTitle";
 import CardModal from "./components/CardModal";
 import { manageModalAtom } from "~/atoms/ManageModalAtom";
 import { useSetAtom } from "jotai";
 import CardMenu from "./components/CardMenu";
+import { useUpdateCard } from "./api/useUpdateCard";
 
 const Card: React.FC<CardProps> = ({ card }) => {
-  const hasMembers = Boolean(card?.memberIds?.length);
+  const hasDescription = Boolean(card?.description);
   const hasComments = Boolean(card?.comments?.length);
   const hasAttachments = Boolean(card?.attachments?.length);
-  const hasAnyActions = hasMembers || hasComments || hasAttachments;
+  const hasAnyActions = hasDescription || hasComments || hasAttachments;
 
   const [openModal, setOpenModal] = React.useState(false);
   const setManageModal = useSetAtom(manageModalAtom);
@@ -99,7 +100,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
   const handleInputBlur = () => {
     setIsEditing(false);
     card.title = editedTitle;
-    updateTitleMutation.mutate({ title: editedTitle || "" });
+    updateCardMutation.mutate({ title: editedTitle });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -109,7 +110,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
   };
 
   const archiveCardMutation = useArchiveCard(card.columnId);
-  const updateTitleMutation = useUpdateTitle(card._id);
+  const updateCardMutation = useUpdateCard(card._id);
 
   const handleArchiveCard = (card: CardType) => {
     archiveCardMutation.mutate({ cardId: card._id });
@@ -135,11 +136,11 @@ const Card: React.FC<CardProps> = ({ card }) => {
         {card?.cover && <CardMedia sx={{ height: 140 }} image={card.cover} />}
         <CardContent
           sx={{
-            p: 1.5,
+            p: 1,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            "&:last-child": { p: 1.5 },
+            "&:last-child": { p: 1 },
             "&:hover .edit-icon": {
               opacity: 1,
               transform: "scale(1)",
@@ -161,6 +162,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
               transition: "opacity 0.3s ease, transform 0.3s ease",
               display: "flex",
               alignItems: "center",
+              width: "24px",
             }}
           >
             <Tooltip title="Mark complete">
@@ -241,11 +243,11 @@ const Card: React.FC<CardProps> = ({ card }) => {
         </CardContent>
 
         {hasAnyActions && (
-          <CardActions sx={{ p: "0 4px 8px 4px" }}>
-            {hasMembers && (
-              <Button size="small" startIcon={<Group />}>
-                {card.memberIds?.length}
-              </Button>
+          <CardActions sx={{ pl: 2 }}>
+            {hasDescription && (
+              <Tooltip title="This card has a description">
+                <Notes fontSize="small" />
+              </Tooltip>
             )}
             {hasComments && (
               <Button size="small" startIcon={<Comment />}>

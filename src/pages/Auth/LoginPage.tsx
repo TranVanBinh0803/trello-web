@@ -13,7 +13,7 @@ import { styled } from "@mui/material/styles";
 import { FacebookIcon, GoogleIcon } from "./components/CustomIcons";
 import { useSetAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
-import { accessTokenAtom, accessTokenExpiresAtAtom } from "~/atoms/AuthAtoms";
+import { accessTokenAtom, accessTokenExpiresAtAtom, user } from "~/atoms/AuthAtoms";
 import { useLogin } from "./api/useLogin";
 import dayjs from "dayjs";
 
@@ -60,6 +60,7 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
 export default function LoginPage() {
   const setAccessToken = useSetAtom(accessTokenAtom);
   const setAccessTokenExpiresAt = useSetAtom(accessTokenExpiresAtAtom);
+  const setUser = useSetAtom(user);
   const navigate = useNavigate();
   const loginMutation = useLogin();
 
@@ -85,6 +86,7 @@ export default function LoginPage() {
       .add(res.data.expiresInSecs, "seconds")
       .toISOString();
     setAccessTokenExpiresAt(expiresAt);
+    setUser(res.data.user);
     navigate("/");
   };
 

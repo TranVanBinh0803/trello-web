@@ -11,9 +11,13 @@ import PersonAdd from "@mui/icons-material/PersonAdd";
 import Settings from "@mui/icons-material/Settings";
 import Logout from "@mui/icons-material/Logout";
 import { useSignOut } from "~/hooks/auth/useSignOut";
+import { useAtomValue } from "jotai";
+import { user } from "~/atoms/AuthAtoms";
+import { HelperUtils } from "~/untils/helpers";
 
 const Profiles: React.FC = () => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const userAtom = useAtomValue(user);
   const open = Boolean(anchorEl);
 
   const signOut = useSignOut();
@@ -42,11 +46,20 @@ const Profiles: React.FC = () => {
           aria-haspopup="true"
           aria-expanded={open ? "true" : undefined}
         >
-          <Avatar
-            sx={{ width: 34, height: 34, backgroundColor: "primary.main" }}
-          >
-            M
-          </Avatar>
+          {userAtom?.avatar !== null ? (
+            <Avatar alt={userAtom?.username} src={userAtom?.avatar} />
+          ) : (
+            <Avatar
+              sx={{
+                width: 34,
+                height: 34,
+                backgroundColor: "primary.main",
+                fontSize: "13px",
+              }}
+            >
+              HelperUtils.getInitials(userAtom?.username)
+            </Avatar>
+          )}
         </IconButton>
       </Tooltip>
       <Menu

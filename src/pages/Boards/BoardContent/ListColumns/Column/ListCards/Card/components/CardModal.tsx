@@ -22,29 +22,41 @@ import {
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import FileList, { mockFileList } from "./FileList";
-import CommentList, { mockCommentList } from "./CommentList";
+import CommentList from "./CommentList";
+import { useUpdateCard } from "../api/useUpdateCard";
+import { HelperUtils } from "~/untils/helpers";
 interface CardModalProps {
   open: boolean;
   onClose: () => void;
   card: CardType;
 }
 
+const modalStyles = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 1200,
+  backgroundColor: "white",
+  borderRadius: "8px",
+  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+  padding: "24px",
+  maxHeight: "90vh",
+  overflowY: "auto",
+};
+
 const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
-  const [value, setValue] = useState("<p>Hello <strong>world</strong></p>");
+  const [value, setValue] = useState("");
   const [isOpenDescription, setIsOpenDescription] = useState(false);
 
-  const modalStyles = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 1200,
-    backgroundColor: "white",
-    borderRadius: "8px",
-    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
-    padding: "24px",
-    maxHeight: "90vh",
-    overflowY: "auto",
+  const updateCardMutation = useUpdateCard(card._id);
+
+  const handleAddDescription = () => {
+    updateCardMutation.mutate({
+      description: value,
+    });
+    card.description = value;
+    setIsOpenDescription(false);
   };
 
   return (
@@ -129,7 +141,7 @@ const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
                     <Notes fontSize="small" />
                     <Typography variant="body2">Description</Typography>
                   </Box>
-                  {!isOpenDescription && (
+                  {!HelperUtils.isEmpty(card.description) && (
                     <Button
                       variant="outlined"
                       onClick={() => setIsOpenDescription(true)}
@@ -141,7 +153,7 @@ const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
                 <Box mt={1}>
                   {!isOpenDescription ? (
                     <Box ml={1}>
-                      <div
+                      <Box
                         dangerouslySetInnerHTML={{
                           __html: card.description || "",
                         }}
@@ -155,7 +167,12 @@ const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
                         onChange={setValue}
                       />
                       <Box sx={{ display: "flex", mt: 1, gap: 2 }}>
-                        <Button variant="contained">Save</Button>
+                        <Button
+                          variant="contained"
+                          onClick={handleAddDescription}
+                        >
+                          Save
+                        </Button>
                         <Button
                           variant="outlined"
                           onClick={() => setIsOpenDescription(false)}
@@ -166,7 +183,7 @@ const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
                     </Box>
                   )}
                 </Box>
-                {!isOpenDescription && (
+                {HelperUtils.isEmpty(card.description) && (
                   <Button
                     variant="outlined"
                     sx={{ justifyContent: "flex-start", width: "100%", mt: 1 }}
@@ -175,7 +192,7 @@ const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
                     Add a more detailed description...
                   </Button>
                 )}
-                <FileList files={mockFileList}/>
+                <FileList files={mockFileList} />
               </Box>
             </Grid>
             <Grid size={5}>
@@ -186,7 +203,7 @@ const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
                   pr: 1,
                 }}
               >
-                <CommentList comments={mockCommentList}/>
+                <CommentList card={card} comments={card?.comments ?? []} />
               </Box>
             </Grid>
           </Grid>
