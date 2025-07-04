@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { HelperUtils } from "~/untils/helpers";
+import DeleteConfirmMenu from "./DeleteConfirmMenu";
 
 interface CommentItemProps {
   authorName: string;
@@ -26,6 +27,20 @@ const CommentItem: React.FC<CommentItemProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(content);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+
+  const handleOpenMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleDelete = () => {
+    onDelete();
+    handleCloseMenu();
+  };
 
   const handleSave = () => {
     if (editValue.trim() === "") return;
@@ -98,13 +113,20 @@ const CommentItem: React.FC<CommentItemProps> = ({
               <Button onClick={() => setIsEditing(true)} size="small">
                 Edit
               </Button>
-              <Button onClick={onDelete} size="small">
+              <Button onClick={handleOpenMenu} size="small">
                 Delete
               </Button>
             </Stack>
           </>
         )}
       </Box>
+      <DeleteConfirmMenu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleCloseMenu}
+        onConfirm={handleDelete}
+        content="Deleting a comment is forever. There is no undo."
+      />
     </Box>
   );
 };

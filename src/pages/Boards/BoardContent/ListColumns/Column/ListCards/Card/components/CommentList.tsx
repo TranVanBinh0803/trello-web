@@ -23,8 +23,8 @@ const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
 
   const userAtom = useAtomValue(user);
   const addCommentMutation = useAddComment(card._id);
-  const updateCommentMutation = useUpdateComment(card._id);
-  const deleteCommentMutation = useDeleteComment(card._id);
+  const updateCommentMutation = useUpdateComment();
+  const deleteCommentMutation = useDeleteComment();
 
   useEffect(() => {
     setLocalComments(comments);
@@ -46,33 +46,43 @@ const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
       updatedAt: null,
     };
 
-    setLocalComments((prevComments) => [...prevComments, newComment]);
-    addCommentMutation.mutate(commentRequest);
+    // setLocalComments((prevComments) => [...prevComments, newComment]);
+    addCommentMutation.mutate(commentRequest, {
+      onSuccess: (data) => {
+        const newComments = data.data.comments ?? [];
+        setLocalComments(newComments);
+      },
+    });
     setIsAddComment(false);
     setValue("");
   };
 
   const handleUpdateComment = (commentId: string, updatedContent: string) => {
-    const newUpdatedAt = new Date().toISOString();
-
-    setLocalComments((prev) =>
-      prev.map((comment) =>
-        comment._id === commentId
-          ? { ...comment, content: updatedContent, updatedAt: newUpdatedAt }
-          : comment
-      )
+    updateCommentMutation.mutate(
+      {
+        cardId: card._id,
+        commentId: commentId,
+        request: { content: updatedContent },
+      },
+      {
+        onSuccess: (data) => {
+          const updatedComments = data.data.comments ?? [];
+          setLocalComments(updatedComments);
+        },
+      }
     );
-
-    updateCommentMutation.mutate({ commentId, content: updatedContent });
   };
 
   const handleDeleteComment = (commentId: string) => {
-    console.log("CommentId:", commentId);
-    setLocalComments((prev) =>
-      prev.filter((comment) => comment._id !== commentId)
+    deleteCommentMutation.mutate(
+      { cardId: card._id, commentId: commentId },
+      {
+        onSuccess: (data) => {
+          const updatedComments = data.data.comments ?? [];
+          setLocalComments(updatedComments);
+        },
+      }
     );
-
-    deleteCommentMutation.mutate({ commentId });
   };
 
   return (

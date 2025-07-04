@@ -36,6 +36,7 @@ export const updateCardApiSpec: ApiSpec = {
 export type updateCardRequest = {
   title?: string;
   description?: string;
+  cover?: string;
 };
 
 export const updateCard = (cardId: string, request: updateCardRequest) =>
@@ -70,18 +71,25 @@ export const addComment = (cardId: string, request: addCommentRequest) =>
  * Update Comment
  */
 export type updateCommentRequest = {
-  commentId: string;
   content: string;
 };
 export const updateCommentApiSpec: ApiSpec = {
   name: "updateComment",
   method: HttpMethod.PATCH,
-  uri: "/cards/:cardId/comments",
+  uri: "/cards/:cardId/comments/:commentId",
 };
 
-export const updateComment = (cardId: string, request: updateCommentRequest) =>
+export const updateComment = (
+  cardId: string,
+  commentId: string,
+  request: updateCommentRequest
+) =>
   restClient
-    .url(updateCommentApiSpec.uri.replace(":cardId", cardId))
+    .url(
+      updateCommentApiSpec.uri
+        .replace(":cardId", cardId)
+        .replace(":commentId", commentId)
+    )
     .json(request)
     .patch()
     .json<RestResponse<CardType>>();
@@ -92,16 +100,41 @@ export const updateComment = (cardId: string, request: updateCommentRequest) =>
 export const deleteCommentApiSpec: ApiSpec = {
   name: "deleteComment",
   method: HttpMethod.DELETE,
-  uri: "/cards/:cardId/comments",
+  uri: "/cards/:cardId/comments/:commentId",
 };
 
-export type deleteCommentRequest = {
-  commentId: string;
-};
-
-export const deleteComment = (cardId: string, request: deleteCommentRequest) =>
+export const deleteComment = (cardId: string, commentId: string) =>
   restClient
-    .url(deleteCommentApiSpec.uri.replace(":cardId", cardId))
-    .json(request)
+    .url(
+      deleteCommentApiSpec.uri
+        .replace(":cardId", cardId)
+        .replace(":commentId", commentId)
+    )
     .delete()
     .json<RestResponse<CardType>>();
+
+/**
+ * Upload file
+ */
+
+export type uploadFileRequest = {
+  file: File;
+};
+
+export const uploadFileApiSpec: ApiSpec = {
+  name: "uploadFile",
+  method: HttpMethod.POST,
+  uri: "/cards/:cardId/uploadFile",
+};
+
+export const uploadFile = (cardId: string, request: uploadFileRequest) => {
+  const formData = new FormData();
+  formData.append("file", request.file);
+  console.log("req.file:", request.file);
+
+  return restClient
+    .url(uploadFileApiSpec.uri.replace(":cardId", cardId))
+    .body(formData)
+    .post()
+    .json<RestResponse<CardType>>();
+};

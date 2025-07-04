@@ -1,10 +1,12 @@
 import { Box, Typography, IconButton, Stack, Button } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { FileItemType } from './FileList';
+import { HelperUtils } from '~/untils/helpers';
+import { AttachmentType } from '~/types/card';
+import { format } from 'date-fns';
 
 
-const FileItem = ({ fileName, fileType, fileURL, createdAt, updatedAt }: FileItemType) => {
+const AttachmentItem = ({ fileName, fileUrl, createdAt, updatedAt }: AttachmentType) => {
   return (
     <Box
       display="flex"
@@ -33,12 +35,12 @@ const FileItem = ({ fileName, fileType, fileURL, createdAt, updatedAt }: FileIte
             fontWeight: 600,
           }}
         >
-          {fileType}
+          {HelperUtils.getFileType(fileName).toLocaleUpperCase()}
         </Box>
         <Box>
           <Typography fontWeight={500}>{fileName}</Typography>
           <Typography variant="caption" color="text.secondary">
-            {createdAt}
+            {format(new Date(createdAt), "MMM dd, yyyy, h:mm a")}
           </Typography>
         </Box>
       </Stack>
@@ -55,4 +57,4 @@ const FileItem = ({ fileName, fileType, fileURL, createdAt, updatedAt }: FileIte
   );
 };
 
-export default FileItem;
+export default AttachmentItem;

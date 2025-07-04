@@ -6,6 +6,13 @@ export interface CommentType {
   createdAt: string;
   updatedAt: string | null;
 }
+export interface AttachmentType {
+  _id: string;
+  fileName: string;
+  fileUrl: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
 export interface CardType {
   _id: string;
   boardId: string;
@@ -15,7 +22,7 @@ export interface CardType {
   cover?: string;
   memberIds?: string[];
   comments?: CommentType[];
-  attachments?: { id: string; name: string }[];
+  attachments?: AttachmentType[];
   FE_PlaceholderCard?: boolean;
   sortable?: Object;
 };

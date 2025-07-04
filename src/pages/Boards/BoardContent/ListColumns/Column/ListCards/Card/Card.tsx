@@ -1,7 +1,6 @@
 import React, { MouseEvent, useEffect, useRef, useState } from "react";
 import {
   Typography,
-  Button,
   CardActions,
   CardContent,
   CardMedia,
@@ -10,12 +9,10 @@ import {
   Checkbox,
 } from "@mui/material";
 import EditNoteIcon from "@mui/icons-material/EditNote";
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import MapsUgcRoundedIcon from "@mui/icons-material/MapsUgcRounded";
 import { Card as MuiCard } from "@mui/material";
 import {
   Attachment,
-  Comment,
-  Group,
   Notes,
   RadioButtonChecked,
   RadioButtonUnchecked,
@@ -29,8 +26,10 @@ import { manageModalAtom } from "~/atoms/ManageModalAtom";
 import { useSetAtom } from "jotai";
 import CardMenu from "./components/CardMenu";
 import { useUpdateCard } from "./api/useUpdateCard";
+import { useGetABoard } from "~/pages/Boards/api/useGetABoard";
 
 const Card: React.FC<CardProps> = ({ card }) => {
+  const getBoardQuery = useGetABoard(card.boardId);
   const hasDescription = Boolean(card?.description);
   const hasComments = Boolean(card?.comments?.length);
   const hasAttachments = Boolean(card?.attachments?.length);
@@ -57,6 +56,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
   };
 
   const handleCloseModal = () => {
+    getBoardQuery.refetch();
     setOpenModal(false);
     setManageModal(false);
   };
@@ -116,6 +116,9 @@ const Card: React.FC<CardProps> = ({ card }) => {
     archiveCardMutation.mutate({ cardId: card._id });
   };
 
+  const isCoverColor = card?.cover?.startsWith("#");
+  const hasCover = Boolean(card?.cover && card?.cover !== "");
+
   return (
     <>
       <MuiCard
@@ -130,10 +133,76 @@ const Card: React.FC<CardProps> = ({ card }) => {
           opacity: card.FE_PlaceholderCard ? "0" : "1",
           minWidth: card.FE_PlaceholderCard ? "280px" : "unset",
           pointerEvents: card.FE_PlaceholderCard ? "none" : "unset",
-          position: card.FE_PlaceholderCard ? "fixed" : "unset",
+          position: card.FE_PlaceholderCard ? "fixed" : "relative",
+          "&:hover .edit-icon": {
+            opacity: 1,
+            transform: "scale(1)",
+          },
+          "&:hover .radio-icon": {
+            opacity: 1,
+            transform: "scale(1)",
+          },
+          "&:hover .card-title": {
+            transform: "translateX(8px)",
+          },
         }}
       >
-        {card?.cover && <CardMedia sx={{ height: 140 }} image={card.cover} />}
+        {!isEditing && (
+          <Tooltip title="Edit card">
+            <Box
+              className="edit-icon"
+              sx={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                padding: "3px",
+                borderRadius: "13px",
+                height: "26px",
+                width: "26px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: 0,
+                transform: "scale(0.8)",
+                transition: "opacity 0.3s ease, transform 0.3s ease",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                backdropFilter: "blur(4px)",
+                zIndex: 1,
+                "&:hover": {
+                  backgroundColor: "rgba(245, 245, 245, 0.95)",
+                },
+              }}
+            >
+              <EditNoteIcon
+                sx={{ color: "text.primary", cursor: "pointer" }}
+                fontSize="small"
+                id="edit-card-dropdown"
+                aria-controls={open ? "menu-edit-card-dropdown" : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? "true" : undefined}
+                onClick={handleClick}
+              />
+            </Box>
+          </Tooltip>
+        )}
+
+        {hasCover && (
+          <>
+            {isCoverColor ? (
+              <Box
+                sx={{
+                  height: 36,
+                  backgroundColor: card.cover,
+                  width: "100%",
+                  borderRadius: 1,
+                }}
+              />
+            ) : (
+              <CardMedia sx={{ height: 140 }} image={card.cover} />
+            )}
+          </>
+        )}
+
         <CardContent
           sx={{
             p: 1,
@@ -141,17 +210,6 @@ const Card: React.FC<CardProps> = ({ card }) => {
             justifyContent: "space-between",
             alignItems: "center",
             "&:last-child": { p: 1 },
-            "&:hover .edit-icon": {
-              opacity: 1,
-              transform: "scale(1)",
-            },
-            "&:hover .radio-icon": {
-              opacity: 1,
-              transform: "scale(1)",
-            },
-            "&:hover .card-title": {
-              transform: "translateX(8px)",
-            },
           }}
         >
           <Box
@@ -185,8 +243,9 @@ const Card: React.FC<CardProps> = ({ card }) => {
                 flexGrow: 1,
                 fontSize: "0.875rem",
                 padding: "4px 8px",
+                marginLeft: "4px",
                 border: "2px solid #0079bf",
-                borderRadius: "4px",
+                borderRadius: 1,
                 outline: "none",
                 backgroundColor: "#fff",
               }}
@@ -202,33 +261,6 @@ const Card: React.FC<CardProps> = ({ card }) => {
             >
               {card?.title}
             </Typography>
-          )}
-
-          {!isEditing && (
-            <Tooltip title="Edit card">
-              <Box
-                className="edit-icon"
-                sx={{
-                  padding: "3px",
-                  borderRadius: "13px",
-                  height: "26px",
-                  opacity: 0,
-                  transform: "scale(0.8)",
-                  transition: "opacity 0.3s ease, transform 0.3s ease",
-                  "&:hover": { backgroundColor: "#f5f5f5" },
-                }}
-              >
-                <EditNoteIcon
-                  sx={{ color: "text.primary", cursor: "pointer" }}
-                  fontSize="small"
-                  id="edit-card-dropdown"
-                  aria-controls={open ? "menu-edit-card-dropdown" : undefined}
-                  aria-haspopup="true"
-                  aria-expanded={open ? "true" : undefined}
-                  onClick={handleClick}
-                />
-              </Box>
-            </Tooltip>
           )}
 
           <CardMenu
@@ -250,14 +282,38 @@ const Card: React.FC<CardProps> = ({ card }) => {
               </Tooltip>
             )}
             {hasComments && (
-              <Button size="small" startIcon={<Comment />}>
-                {card.comments?.length}
-              </Button>
+              <Tooltip title="comments">
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "2px",
+                  }}
+                >
+                  <MapsUgcRoundedIcon sx={{ width: 16, height: 16 }} />
+                  <Typography variant="body2">
+                    {card.comments?.length}
+                  </Typography>
+                </Box>
+              </Tooltip>
             )}
             {hasAttachments && (
-              <Button size="small" startIcon={<Attachment />}>
-                {card.attachments?.length}
-              </Button>
+              <Tooltip title="attachments">
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "2px",
+                  }}
+                >
+                  <Attachment fontSize="small" />
+                  <Typography variant="body2">
+                    {card.attachments?.length}
+                  </Typography>
+                </Box>
+              </Tooltip>
             )}
           </CardActions>
         )}
