@@ -1,9 +1,7 @@
 import {
   Box,
   Button,
-  Checkbox,
   Divider,
-  FormControlLabel,
   TextField,
   Typography,
   Link,

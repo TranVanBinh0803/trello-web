@@ -114,27 +114,89 @@ export const deleteComment = (cardId: string, commentId: string) =>
     .json<RestResponse<CardType>>();
 
 /**
- * Upload file
+ * Add Attachment
  */
 
-export type uploadFileRequest = {
+export type addAttachmentRequest = {
   file: File;
 };
 
-export const uploadFileApiSpec: ApiSpec = {
-  name: "uploadFile",
+export const addAttachmentApiSpec: ApiSpec = {
+  name: "addAttachment",
   method: HttpMethod.POST,
-  uri: "/cards/:cardId/uploadFile",
+  uri: "/cards/:cardId/attachments",
 };
 
-export const uploadFile = (cardId: string, request: uploadFileRequest) => {
+export const addAttachment = (
+  cardId: string,
+  request: addAttachmentRequest
+) => {
   const formData = new FormData();
   formData.append("file", request.file);
-  console.log("req.file:", request.file);
 
   return restClient
-    .url(uploadFileApiSpec.uri.replace(":cardId", cardId))
+    .url(addAttachmentApiSpec.uri.replace(":cardId", cardId))
     .body(formData)
     .post()
     .json<RestResponse<CardType>>();
 };
+
+/**
+ * Update Attachment File Name
+ */
+export type updateAttachmentRequest = {
+  fileName: string;
+};
+export const updateAttachmentApiSpec: ApiSpec = {
+  name: "updateAttachment",
+  method: HttpMethod.PATCH,
+  uri: "/cards/:cardId/attachments/:attachmentId",
+};
+
+export const updateAttachment = (
+  cardId: string,
+  attachmentId: string,
+  request: updateAttachmentRequest
+) =>
+  restClient
+    .url(
+      updateAttachmentApiSpec.uri
+        .replace(":cardId", cardId)
+        .replace(":attachmentId", attachmentId)
+    )
+    .json(request)
+    .patch()
+    .json<RestResponse<CardType>>();
+
+/**
+ * Delete Attachment
+ */
+export const deleteAttachmentApiSpec: ApiSpec = {
+  name: "deleteAttachment",
+  method: HttpMethod.DELETE,
+  uri: "/cards/:cardId/attachments/:attachmentId",
+};
+
+export const deleteAttachment = (cardId: string, attachmentId: string) =>
+  restClient
+    .url(
+      deleteAttachmentApiSpec.uri
+        .replace(":cardId", cardId)
+        .replace(":attachmentId", attachmentId)
+    )
+    .delete()
+    .json<RestResponse<CardType>>();
+
+/**
+ * Get A Card
+ */
+export const getACardApiSpec: ApiSpec = {
+  name: "getACard",
+  method: HttpMethod.GET,
+  uri: "/cards/:id",
+};
+export const getACard = (cardId: string) =>
+  restClient
+    .url(getACardApiSpec.uri.replace(":id", cardId))
+    .get()
+    .json<RestResponse<CardType>>();

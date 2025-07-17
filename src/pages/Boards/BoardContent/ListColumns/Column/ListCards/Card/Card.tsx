@@ -27,9 +27,11 @@ import { useSetAtom } from "jotai";
 import CardMenu from "./components/CardMenu";
 import { useUpdateCard } from "./api/useUpdateCard";
 import { useGetABoard } from "~/pages/Boards/api/useGetABoard";
+import { useGetACard } from "./api/useGetACard";
 
 const Card: React.FC<CardProps> = ({ card }) => {
   const getBoardQuery = useGetABoard(card.boardId);
+  // const getCardQuery = useGetACard(card._id);
   const hasDescription = Boolean(card?.description);
   const hasComments = Boolean(card?.comments?.length);
   const hasAttachments = Boolean(card?.attachments?.length);
@@ -57,6 +59,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
 
   const handleCloseModal = () => {
     getBoardQuery.refetch();
+    // getCardQuery.refetch();
     setOpenModal(false);
     setManageModal(false);
   };

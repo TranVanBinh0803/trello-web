@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   Box,
@@ -122,6 +122,10 @@ const CardModal: React.FC<CardModalProps> = ({ open, onClose, card }) => {
       },
     }),
   };
+
+  useEffect(() => {
+    setLocalCard(card);
+  }, [card]);
 
   return (
     <>

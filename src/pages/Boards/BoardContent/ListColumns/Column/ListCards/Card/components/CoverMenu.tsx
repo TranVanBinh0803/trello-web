@@ -14,10 +14,8 @@ import {
 import { CardType } from "~/types/card";
 import CloseIcon from "@mui/icons-material/Close";
 import UploadIcon from "@mui/icons-material/Upload";
-import { useUploadFile } from "../api/useUploadFile";
-import { HelperUtils } from "~/untils/helpers";
-import { useUpdateCard } from "../api/useUpdateCard";
 import { toast } from "react-toastify";
+import { useAddAttachment } from "../api/useAddAttachment";
 
 interface CoverMenuProps {
   anchorEl: HTMLElement | null;
@@ -52,7 +50,7 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
   onSetLocalCard,
   card,
 }) => {
-  const uploadFileMutation = useUploadFile(card._id);
+  const addAttachmentMutation = useAddAttachment(card._id);
   const [localCard, setLocalCard] = useState<CardType>(card);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +58,7 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
     if (!file) {
       return;
     }
-    uploadFileMutation.mutate(
+    addAttachmentMutation.mutate(
       { file },
       {
         onSuccess: (response) => {

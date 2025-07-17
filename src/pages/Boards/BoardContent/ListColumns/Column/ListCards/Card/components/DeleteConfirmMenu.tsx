@@ -12,6 +12,7 @@ interface DeleteConfirmMenuProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  label: string;
   content: string;
 }
 
@@ -20,6 +21,7 @@ const DeleteConfirmMenu: React.FC<DeleteConfirmMenuProps> = ({
   open,
   onClose,
   onConfirm,
+  label,
   content
 }) => {
   return (
@@ -41,7 +43,7 @@ const DeleteConfirmMenu: React.FC<DeleteConfirmMenuProps> = ({
     >
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
         <Typography fontWeight={600} fontSize={14}>
-          Delete comment?
+          Delete {label}?
         </Typography>
         <IconButton size="small" onClick={onClose}>
           <CloseIcon fontSize="small" />
@@ -58,7 +60,7 @@ const DeleteConfirmMenu: React.FC<DeleteConfirmMenuProps> = ({
         fullWidth
         onClick={onConfirm}
       >
-        Delete comment
+        Delete {label}
       </Button>
     </Popover>
   );

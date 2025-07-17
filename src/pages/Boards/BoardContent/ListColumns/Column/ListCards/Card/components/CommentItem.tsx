@@ -125,6 +125,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         open={Boolean(anchorEl)}
         onClose={handleCloseMenu}
         onConfirm={handleDelete}
+        label="comment"
         content="Deleting a comment is forever. There is no undo."
       />
     </Box>
