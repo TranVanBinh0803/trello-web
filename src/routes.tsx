@@ -1,8 +1,10 @@
 import { RouteObject } from "react-router-dom";
 import LoginPage from "./pages/Auth/LoginPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
+
 import { ProtectedRoute } from "./components/ProtectedRoute/ProtectedRoute";
 import Board from "./pages/Boards/_id";
+import Test from "./pages/Test";
 
 const publicRoutes: RouteObject[] = [
   {
@@ -12,6 +14,10 @@ const publicRoutes: RouteObject[] = [
   {
     path: "/register",
     element: <RegisterPage />,
+  },
+  {
+    path: "/test",
+    element: <Test />,
   },
 ];
 const privateRoutes: RouteObject[] = [

@@ -11,17 +11,21 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { queryClient } from "./apis/queryClient";
 import { useRoutes } from "react-router-dom";
 import { routes } from "./routes";
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 function App() {
   const appRoutes = useRoutes(routes);
   return (
     <QueryClientProvider client={queryClient}>
       <JotaiProvider store={store}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           {appRoutes}
           <ToastContainer position="bottom-right" autoClose={1000}/>
         </ThemeProvider>
+        </LocalizationProvider>
         <JotaiDevTools store={store} />
       </JotaiProvider>
       <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
