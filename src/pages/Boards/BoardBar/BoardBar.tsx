@@ -1,15 +1,38 @@
+import { useState, type FormEvent } from "react";
 import {
   AddToDriveOutlined,
   DashboardRounded,
+  WorkspacePremium,
   PersonAdd,
 } from "@mui/icons-material";
+import CloseIcon from "@mui/icons-material/Close";
 import PublicIcon from "@mui/icons-material/Public";
 import PublicOffIcon from "@mui/icons-material/PublicOff";
-import { Box, Button, Chip } from "@mui/material";
-import Avatar from "@mui/material/Avatar";
-import AvatarGroup from "@mui/material/AvatarGroup";
+import {
+  Avatar,
+  AvatarGroup,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Skeleton,
+  TextField,
+  Tooltip,
+} from "@mui/material";
 import { useAtomValue } from "jotai";
+import { user } from "~/atoms/AuthAtoms";
 import { boardDataAtom } from "~/atoms/BoardAtom";
+import { HelperUtils } from "~/untils/helpers";
+import { SchemaUtils } from "~/untils/schema";
+import { useInviteBoardMember } from "./api/useInviteBoardMember";
 
 const MENU_STYLES = {
   color: "primary.main",
@@ -23,73 +46,233 @@ const MENU_STYLES = {
 };
 
 const BoardBar = () => {
-  const board = useAtomValue(boardDataAtom);  
+  const board = useAtomValue(boardDataAtom);
+  const currentUser = useAtomValue(user);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [email, setEmail] = useState("");
+
+  const inviteBoardMemberMutation = useInviteBoardMember(board?._id || "");
   const isPublic = board?.type === "public";
+  const members = board?.members ?? [];
+  const isBoardReady = Boolean(board);
+  const ownerIds = board?.ownerIds ?? [];
+  const isCurrentUserOwner = ownerIds.some(
+    (ownerId) => ownerId.toString() === currentUser?._id
+  );
+  const trimmedEmail = email.trim();
+  const isInviteEmailValid = SchemaUtils.validator.isValidEmail(trimmedEmail);
+  const shouldShowEmailError = Boolean(trimmedEmail) && !isInviteEmailValid;
+
+  const isOwner = (memberId: string) =>
+    ownerIds.some((ownerId) => ownerId.toString() === memberId);
+
+  const handleCloseInviteDialog = () => {
+    setInviteOpen(false);
+    setEmail("");
+  };
+
+  const handleInviteSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!board?._id || !isCurrentUserOwner || !isInviteEmailValid) return;
+
+    inviteBoardMemberMutation.mutate(
+      { email: trimmedEmail },
+      {
+        onSuccess: () => {
+          setEmail("");
+        },
+      }
+    );
+  };
 
   return (
-    <Box
-      px={2}
-      sx={{
-        width: "100%",
-        height: (theme) => theme.trello.boardBarHeight,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 2,
-        overflowX: "auto",
-        borderTop: "1px solid #ccc",
-        borderBottom: "1px solid #ccc",
-      }}
-    >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <Chip
-          icon={<DashboardRounded color="primary" />}
-          label={board?.title}
-          sx={MENU_STYLES}
-          clickable
-        />
-        <Chip
-          icon={
-            isPublic ? (
-              <PublicIcon color="primary" />
+    <>
+      <Box
+        px={2}
+        sx={{
+          width: "100%",
+          height: (theme) => theme.trello.boardBarHeight,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 2,
+          overflowX: "auto",
+          borderTop: "1px solid #ccc",
+          borderBottom: "1px solid #ccc",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          {isBoardReady ? (
+            <>
+              <Chip
+                icon={<DashboardRounded color="primary" />}
+                label={board?.title}
+                sx={{ ...MENU_STYLES, minWidth: 160 }}
+              />
+              <Chip
+                icon={
+                  isPublic ? (
+                    <PublicIcon color="primary" />
+                  ) : (
+                    <PublicOffIcon color="primary" />
+                  )
+                }
+                label={`${isPublic ? "Public" : "Private"} Workspace`}
+                sx={{ ...MENU_STYLES, minWidth: 170 }}
+              />
+            </>
+          ) : (
+            <>
+              <Skeleton variant="rounded" width={160} height={32} />
+              <Skeleton variant="rounded" width={170} height={32} />
+            </>
+          )}
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<PersonAdd />}
+            onClick={() => setInviteOpen(true)}
+            disabled={!isBoardReady || !isCurrentUserOwner}
+          >
+            Invite
+          </Button>
+          <Box sx={{ width: 144, display: "flex", justifyContent: "flex-end" }}>
+            {isBoardReady ? (
+              <AvatarGroup
+                max={4}
+                sx={{
+                  "& .MuiAvatar-root": {
+                    width: 34,
+                    height: 34,
+                    fontSize: 16,
+                    backgroundColor: "primary.main",
+                  },
+                }}
+              >
+                {members.map((member) => (
+                  <Tooltip
+                    title={`${member.email}${isOwner(member._id) ? " • Owner" : ""}`}
+                    key={member._id}
+                  >
+                    <Avatar
+                      alt={member.username}
+                      src={member.avatar || undefined}
+                    >
+                      {HelperUtils.getInitials(member.username)}
+                    </Avatar>
+                  </Tooltip>
+                ))}
+              </AvatarGroup>
             ) : (
-              <PublicOffIcon color="primary" />
-            )
-          }
-          label={`${isPublic ? "Public" : "Private"} Workspace`}
-          sx={MENU_STYLES}
-          clickable
-        />
-        <Chip
-          icon={<AddToDriveOutlined color="primary" />}
-          label="Add to google drive"
-          sx={MENU_STYLES}
-          clickable
-        />
+              <AvatarGroup
+                max={4}
+                sx={{
+                  "& .MuiAvatar-root": {
+                    width: 34,
+                    height: 34,
+                  },
+                }}
+              >
+                {["member-skeleton-1", "member-skeleton-2", "member-skeleton-3"].map(
+                  (key) => (
+                    <Skeleton
+                      animation="wave"
+                      key={key}
+                      variant="circular"
+                      width={34}
+                      height={34}
+                    />
+                  )
+                )}
+              </AvatarGroup>
+            )}
+          </Box>
+        </Box>
       </Box>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <Button variant="outlined" startIcon={<PersonAdd />}>
-          Invite
-        </Button>
-        <AvatarGroup
-          max={4}
+
+      <Dialog
+        open={inviteOpen}
+        onClose={handleCloseInviteDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <Box
           sx={{
-            "& .MuiAvatar-root": {
-              width: 34,
-              height: 34,
-              fontSize: 16,
-              backgroundColor: "primary.main",
-            },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            pr: 1,
           }}
         >
-          <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-          <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
-          <Avatar alt="Cindy Baker" src="/static/images/avatar/3.jpg" />
-          <Avatar alt="Agnes Walker" src="/static/images/avatar/4.jpg" />
-          <Avatar alt="Trevor Henderson" src="/static/images/avatar/5.jpg" />
-        </AvatarGroup>
-      </Box>
-    </Box>
+          <DialogTitle>Board members</DialogTitle>
+          <IconButton onClick={handleCloseInviteDialog} aria-label="close">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Box component="form" onSubmit={handleInviteSubmit}>
+          <DialogContent sx={{ pt: 1 }}>
+            <TextField
+              autoFocus
+              fullWidth
+              label="User email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              disabled={inviteBoardMemberMutation.isPending}
+              error={shouldShowEmailError}
+              helperText={
+                shouldShowEmailError ? SchemaUtils.message.invalidEmail : " "
+              }
+            />
+            <List dense sx={{ mt: 2 }}>
+              {members.map((member) => (
+                <ListItem disableGutters key={member._id}>
+                  <ListItemAvatar>
+                    <Avatar alt={member.username} src={member.avatar || undefined}>
+                      {HelperUtils.getInitials(member.username)}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        {member.username}
+                        {isOwner(member._id) && (
+                          <Chip
+                            size="small"
+                            icon={<WorkspacePremium />}
+                            label="Owner"
+                            color="success"
+                            variant="outlined"
+                            sx={{ height: 22 }}
+                          />
+                        )}
+                      </Box>
+                    }
+                    secondary={member.email}
+                    primaryTypographyProps={{ fontWeight: 600 }}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseInviteDialog}>Close</Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={
+                !isCurrentUserOwner ||
+                !isInviteEmailValid ||
+                inviteBoardMemberMutation.isPending
+              }
+            >
+              Send invite
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
+    </>
   );
 };
 

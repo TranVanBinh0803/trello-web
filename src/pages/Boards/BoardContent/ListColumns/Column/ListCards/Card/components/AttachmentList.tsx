@@ -9,11 +9,13 @@ import { useState } from "react";
 interface AttachmentListProps {
   card: CardType;
   attachments: AttachmentType[];
+  onCardChange: (card: CardType) => void;
 }
 
 const AttachmentList: React.FC<AttachmentListProps> = ({
   card,
   attachments,
+  onCardChange,
 }) => {
   const updateAttachmentMutation = useUpdateAttachment();
   const deleteAttachmentMutation = useDeleteAttachment();
@@ -21,29 +23,36 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
 
   const handleUpdateAttachment = (
     attachmentId: string,
-    updatedFileName: string
+    updatedFileName: string,
   ) => {
-    updateAttachmentMutation.mutate({
-      cardId: card._id,
-      attachmentId: attachmentId,
-      request: { fileName: updatedFileName },
-    });
+    updateAttachmentMutation.mutate(
+      {
+        cardId: card._id,
+        attachmentId: attachmentId,
+        request: { fileName: updatedFileName },
+      },
+      {
+        onSuccess: (response) => {
+          setLocalAttachments(response.data.attachments ?? []);
+          onCardChange(response.data);
+        },
+      }
+    );
   };
 
   const handleDeleteAttachment = (attachmentId: string) => {
-    deleteAttachmentMutation.mutate({
-      cardId: card._id,
-      attachmentId: attachmentId,
-    }),
+    deleteAttachmentMutation.mutate(
       {
-        onSuccess: () => {
-          console.log("Here");
-          setLocalAttachments((prev) =>
-            prev.filter((item) => item._id !== attachmentId)
-          );
-          console.log("localAttachments:", localAttachments);
+        cardId: card._id,
+        attachmentId: attachmentId,
+      },
+      {
+        onSuccess: (response) => {
+          setLocalAttachments(response.data.attachments ?? []);
+          onCardChange(response.data);
         },
-      };
+      }
+    );
   };
 
   return (
@@ -67,8 +76,6 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
           <Attachment fontSize="small" />
           <Typography variant="body2">Attachments</Typography>
         </Box>
-
-        <Button variant="outlined">Add</Button>
       </Box>
 
       <Box>

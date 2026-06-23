@@ -1,24 +1,34 @@
 import {
-  Badge,
   Box,
   Button,
   InputAdornment,
+  Menu,
+  MenuItem,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import React, { useState, ChangeEvent } from "react";
+import React, { useRef, useState, ChangeEvent, MouseEvent } from "react";
 import ModeSelect from "../ModeSelect/ModeSelect";
 import AppsIcon from "@mui/icons-material/Apps";
-// import { ReactComponent as TrelloIcon } from "~/assets/trello.svg?react";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import Profiles from "./Menus/Profiles";
 import SearchIcon from "@mui/icons-material/Search";
+import { useAtomValue } from "jotai";
+import { toast } from "react-toastify";
+import { accessTokenAtom } from "~/atoms/AuthAtoms";
+import { useImportBoard } from "./api/useImportBoard";
+import { API_ROOT } from "~/untils/constants";
+import Notifications from "./Menus/Notifications";
 
 const AppBar: React.FC = () => {
   const [searchValue, setSearchValue] = useState<string>("");
+  const [createAnchorEl, setCreateAnchorEl] = useState<HTMLElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const accessToken = useAtomValue(accessTokenAtom);
+  
+  const importBoardMutation = useImportBoard();
+
+  const openCreateMenu = Boolean(createAnchorEl);
 
   const handleSearch = (): void => {
     console.log("Click search:", searchValue);
@@ -26,6 +36,58 @@ const AppBar: React.FC = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setSearchValue(e.target.value);
+  };
+
+  const handleOpenCreateMenu = (event: MouseEvent<HTMLElement>) => {
+    setCreateAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseCreateMenu = () => {
+    setCreateAnchorEl(null);
+  };
+
+  const handleDownloadImportSample = () => {
+    const downloadTemplate = async () => {
+      const response = await fetch(`${API_ROOT}/boards/import-template`, {
+        headers: accessToken
+          ? {
+              Authorization: `Bearer ${accessToken}`,
+            }
+          : undefined,
+      });
+      if (!response.ok) {
+        throw new Error("Failed to download import template");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "trello-board-import-template.xlsx";
+      link.click();
+      URL.revokeObjectURL(url);
+    };
+
+    downloadTemplate().catch((error: unknown) => {
+      const message =
+        error instanceof Error ? error.message : "Failed to download template";
+      toast.error(message);
+    });
+    handleCloseCreateMenu();
+  };
+
+  const handleChooseImportFile = () => {
+    fileInputRef.current?.click();
+    handleCloseCreateMenu();
+  };
+
+  const handleImportFileChange = async (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    importBoardMutation.mutate(file);
   };
 
   return (
@@ -44,11 +106,6 @@ const AppBar: React.FC = () => {
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
         <AppsIcon sx={{ color: "primary.main" }} />
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          {/* <SvgIcon
-            component={TrelloIcon}
-            inheritViewBox
-            sx={{ color: "primary.main", fontSize: "18px" }}
-          /> */}
           <Typography
             component="span"
             sx={{
@@ -61,10 +118,32 @@ const AppBar: React.FC = () => {
           </Typography>
         </Box>
         <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
-          
-          <Button variant="outlined" startIcon={<LibraryAddIcon />}>
+          <Button
+            variant="outlined"
+            startIcon={<LibraryAddIcon />}
+            onClick={handleOpenCreateMenu}
+          >
             Create
           </Button>
+          <Menu
+            anchorEl={createAnchorEl}
+            open={openCreateMenu}
+            onClose={handleCloseCreateMenu}
+          >
+            <MenuItem onClick={handleDownloadImportSample}>
+              Download Excel import sample
+            </MenuItem>
+            <MenuItem onClick={handleChooseImportFile}>
+              Import board from Excel
+            </MenuItem>
+          </Menu>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            hidden
+            onChange={handleImportFileChange}
+          />
         </Box>
       </Box>
 
@@ -91,17 +170,7 @@ const AppBar: React.FC = () => {
         />
 
         <ModeSelect />
-
-        <Tooltip title="Notifications">
-          <Badge color="primary" variant="dot" sx={{ cursor: "pointer" }}>
-            <NotificationsNoneIcon sx={{ color: "primary.main" }} />
-          </Badge>
-        </Tooltip>
-
-        <Tooltip title="Help">
-          <HelpOutlineIcon sx={{ cursor: "pointer", color: "primary.main" }} />
-        </Tooltip>
-
+        <Notifications/>
         <Profiles />
       </Box>
     </Box>

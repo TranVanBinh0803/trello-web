@@ -78,7 +78,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
 
     const newCardData = {
       title: newCardTitle,
-      boardId: "682aec06ccbbf399b8a14ea5",
+      boardId: column.boardId,
       columnId: column._id,
     };
 
@@ -173,23 +173,6 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
             >
               <MenuItem>
                 <ListItemIcon>
-                  <AddCard fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>
-                  <Box>Add new card</Box>
-                </ListItemText>
-              </MenuItem>
-              <MenuItem>
-                <ListItemIcon>
-                  <ContentCut fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>
-                  <Box>Cut</Box>
-                </ListItemText>
-              </MenuItem>
-              <Divider />
-              <MenuItem>
-                <ListItemIcon>
                   <Cloud fontSize="small" />
                 </ListItemIcon>
                 <ListItemText onClick={() => handleArchiveColumn(column)}>
@@ -201,7 +184,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
         </Box>
 
         {/* List cards */}
-        <ListCards cards={orderedCards}/>
+        <ListCards cards={orderedCards} />
 
         {/* Footer */}
         <Box sx={{ height: (theme) => theme.trello.columnFooterHeight, p: 2 }}>

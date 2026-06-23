@@ -1,4 +1,5 @@
 import { ColumnType } from "./column";
+import { UserType } from "./user";
 
 enum Type {
   PUBLIC = "public",
@@ -11,6 +12,7 @@ export interface BoardType {
   description: string;
   ownerIds?: string[]; 
   memberIds?: string[];
+  members?: UserType[];
   columnOrderIds: string[];
   columns?: ColumnType[];
 };

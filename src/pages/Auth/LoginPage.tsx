@@ -19,7 +19,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-const formSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email("Invalid email").nonempty("Email is required"),
   password: z
     .string()
@@ -27,7 +27,7 @@ const formSchema = z.object({
     .nonempty("Password is required"),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof loginSchema>;
 
 const Card = styled("div")(({ theme }) => ({
   display: "flex",
@@ -67,7 +67,7 @@ export default function LoginPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -136,7 +136,11 @@ export default function LoginPage() {
               ? "Signing in..."
               : "Sign in"}
           </Button>
-          <Link component="button" variant="body2">
+          <Link
+            component="button"
+            variant="body2"
+            onClick={() => navigate("/forgot-password")}
+          >
             Forgot your password?
           </Link>
         </Box>

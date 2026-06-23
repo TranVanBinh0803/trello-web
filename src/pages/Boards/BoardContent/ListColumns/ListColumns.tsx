@@ -10,8 +10,11 @@ import { Close } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { ListColumnsProps } from "~/types/column";
 import { useCreateColumn } from "./api/useCreateColumn";
+import { useAtomValue } from "jotai";
+import { boardDataAtom } from "~/atoms/BoardAtom";
 
 const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
+  const board = useAtomValue(boardDataAtom);
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false);
   const toggleOpenNewColumnForm = () => {
     setOpenNewColumnForm(!openNewColumnForm);
@@ -22,6 +25,11 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
   const createColumnApi = useCreateColumn();
 
   const addNewColumn = async () => {
+    if (!board?._id) {
+      toast.error("Board is not ready");
+      return;
+    }
+
     if (!newColumnTitle.trim()) {
       toast.error("Please enter column title");
       return;
@@ -29,7 +37,7 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
 
     const newColumnData = {
       title: newColumnTitle,
-      boardId: "682aec06ccbbf399b8a14ea5",
+      boardId: board._id,
     };
 
     try {

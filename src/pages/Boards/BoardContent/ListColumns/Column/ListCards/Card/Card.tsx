@@ -7,7 +7,10 @@ import {
   Tooltip,
   Box,
   Checkbox,
+  Chip,
+  LinearProgress,
 } from "@mui/material";
+import type { SxProps, Theme } from "@mui/material";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import MapsUgcRoundedIcon from "@mui/icons-material/MapsUgcRounded";
 import { Card as MuiCard } from "@mui/material";
@@ -16,6 +19,8 @@ import {
   Notes,
   RadioButtonChecked,
   RadioButtonUnchecked,
+  Schedule,
+  TaskAlt,
 } from "@mui/icons-material";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -27,15 +32,73 @@ import { useSetAtom } from "jotai";
 import CardMenu from "./components/CardMenu";
 import { useUpdateCard } from "./api/useUpdateCard";
 import { useGetABoard } from "~/pages/Boards/api/useGetABoard";
-import { useGetACard } from "./api/useGetACard";
+import dayjs from "dayjs";
+
+const completedRadioSx: SxProps<Theme> = (theme) => ({
+  position: "relative",
+  overflow: "visible",
+  color: "text.secondary",
+  "& .MuiSvgIcon-root": {
+    position: "relative",
+    zIndex: 1,
+  },
+  "&.Mui-checked": {
+    color: "success.main",
+  },
+  "&.Mui-checked::after": {
+    content: '""',
+    position: "absolute",
+    width: 32,
+    height: 32,
+    borderRadius: "50%",
+    background: `conic-gradient(
+      from 0deg,
+      transparent 0deg 32deg,
+      ${theme.palette.success.main} 32deg 40deg,
+      transparent 40deg 82deg,
+      ${theme.palette.success.main} 82deg 90deg,
+      transparent 90deg 132deg,
+      ${theme.palette.success.main} 132deg 140deg,
+      transparent 140deg 182deg,
+      ${theme.palette.success.main} 182deg 190deg,
+      transparent 190deg 232deg,
+      ${theme.palette.success.main} 232deg 240deg,
+      transparent 240deg 282deg,
+      ${theme.palette.success.main} 282deg 290deg,
+      transparent 290deg 332deg,
+      ${theme.palette.success.main} 332deg 340deg,
+      transparent 340deg 360deg
+    )`,
+    animation: "completedRadioSpark 900ms ease-out forwards",
+    zIndex: 0,
+  },
+
+  "@keyframes completedRadioSpark": {
+    "0%": { opacity: 0.9, transform: "scale(0.55) rotate(0deg)" },
+    "100%": { opacity: 0, transform: "scale(1.45) rotate(22deg)" },
+  },
+});
 
 const Card: React.FC<CardProps> = ({ card }) => {
   const getBoardQuery = useGetABoard(card.boardId);
-  // const getCardQuery = useGetACard(card._id);
   const hasDescription = Boolean(card?.description);
   const hasComments = Boolean(card?.comments?.length);
   const hasAttachments = Boolean(card?.attachments?.length);
-  const hasAnyActions = hasDescription || hasComments || hasAttachments;
+  const hasDates = Boolean(card.startDate || card.dueDate);
+  const checklistItems = (card.checklists ?? []).flatMap(
+    (checklist) => checklist.items
+  );
+  const completedChecklistItems = checklistItems.filter(
+    (item) => item.completed
+  ).length;
+  const hasChecklist = checklistItems.length > 0;
+  const checklistProgress = hasChecklist
+    ? Math.round((completedChecklistItems / checklistItems.length) * 100)
+    : 0;
+  const isChecklistCompleted =
+    hasChecklist && completedChecklistItems === checklistItems.length;
+  const hasAnyActions =
+    hasDescription || hasComments || hasAttachments || hasDates || hasChecklist;
 
   const [openModal, setOpenModal] = React.useState(false);
   const setManageModal = useSetAtom(manageModalAtom);
@@ -59,7 +122,6 @@ const Card: React.FC<CardProps> = ({ card }) => {
 
   const handleCloseModal = () => {
     getBoardQuery.refetch();
-    // getCardQuery.refetch();
     setOpenModal(false);
     setManageModal(false);
   };
@@ -114,6 +176,24 @@ const Card: React.FC<CardProps> = ({ card }) => {
 
   const archiveCardMutation = useArchiveCard(card.columnId);
   const updateCardMutation = useUpdateCard(card._id);
+
+  const setCardCompleted = (completed: boolean) => {
+    card.completed = completed;
+    updateCardMutation.mutate({ completed });
+  };
+
+  const handleToggleCompleted = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    event.stopPropagation();
+    setCardCompleted(event.target.checked);
+  };
+
+  const handleRadioClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setCardCompleted(!Boolean(card.completed));
+  };
 
   const handleArchiveCard = (card: CardType) => {
     archiveCardMutation.mutate({ cardId: card._id });
@@ -206,6 +286,22 @@ const Card: React.FC<CardProps> = ({ card }) => {
           </>
         )}
 
+        {Boolean(card.labels?.length) && (
+          <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", px: 1, pt: 1 }}>
+            {card.labels?.map((label) => (
+              <Box
+                key={label._id}
+                sx={{
+                  width: 44,
+                  height: 8,
+                  borderRadius: 1,
+                  backgroundColor: label.color,
+                }}
+              />
+            ))}
+          </Box>
+        )}
+
         <CardContent
           sx={{
             p: 1,
@@ -217,6 +313,9 @@ const Card: React.FC<CardProps> = ({ card }) => {
         >
           <Box
             className="radio-icon"
+            onPointerDown={(event) => event.stopPropagation()}
+            onMouseDown={(event) => event.stopPropagation()}
+            onClick={handleRadioClick}
             sx={{
               opacity: 0,
               transform: "scale(0.8)",
@@ -229,8 +328,14 @@ const Card: React.FC<CardProps> = ({ card }) => {
             <Tooltip title="Mark complete">
               <Checkbox
                 size="small"
+                checked={Boolean(card.completed)}
+                onChange={handleToggleCompleted}
+                onPointerDown={(event) => event.stopPropagation()}
+                onMouseDown={(event) => event.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
                 icon={<RadioButtonUnchecked />}
                 checkedIcon={<RadioButtonChecked />}
+                sx={[completedRadioSx, { pointerEvents: "none" }]}
               />
             </Tooltip>
           </Box>
@@ -258,6 +363,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
               variant="body2"
               className="card-title"
               sx={{
+                ml: 1,
                 flexGrow: 1,
                 transition: "transform 0.3s ease",
               }}
@@ -315,6 +421,43 @@ const Card: React.FC<CardProps> = ({ card }) => {
                   <Typography variant="body2">
                     {card.attachments?.length}
                   </Typography>
+                </Box>
+              </Tooltip>
+            )}
+            {hasDates && (
+              <Tooltip title="dates">
+                <Chip
+                  icon={<Schedule sx={{ width: 14, height: 14 }} />}
+                  label={dayjs(card.dueDate).format("DD/MM/YYYY") || dayjs(card.startDate).format("DD/MM/YYYY")}
+                  size="small"
+                  color={card.completed ? "success" : "default"}
+                />
+              </Tooltip>
+            )}
+            {hasChecklist && (
+              <Tooltip title="checklist">
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "4px",
+                    minWidth: 72,
+                    color: isChecklistCompleted
+                      ? "success.main"
+                      : "text.primary",
+                  }}
+                >
+                  <TaskAlt fontSize="small" sx={{ color: "inherit" }} />
+                  <Typography variant="body2">
+                    {completedChecklistItems}/{checklistItems.length}
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={checklistProgress}
+                    color={isChecklistCompleted ? "success" : "primary"}
+                    sx={{ width: 24, height: 6, borderRadius: 1 }}
+                  />
                 </Box>
               </Tooltip>
             )}

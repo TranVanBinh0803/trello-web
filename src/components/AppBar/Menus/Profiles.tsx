@@ -1,26 +1,78 @@
-import { Box } from "@mui/material";
-import React, { MouseEvent } from "react";
-import Avatar from "@mui/material/Avatar";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import PersonAdd from "@mui/icons-material/PersonAdd";
-import Settings from "@mui/icons-material/Settings";
+import React, { ChangeEvent, FormEvent, MouseEvent } from "react";
+
 import Logout from "@mui/icons-material/Logout";
-import { useSignOut } from "~/hooks/auth/useSignOut";
-import { useAtomValue } from "jotai";
+import {
+  Avatar,
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  TextField,
+  Tooltip,
+} from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAtom } from "jotai";
+
+import { getABoardApiSpec } from "~/apis/services/board/Board";
+import { getBoardInvitationsApiSpec } from "~/apis/services/user/User";
 import { user } from "~/atoms/AuthAtoms";
+import { boardDataAtom } from "~/atoms/BoardAtom";
+import { useSignOut } from "~/hooks/auth/useSignOut";
+import { BoardType } from "~/types/board";
+import { RestResponse } from "~/types/common";
+import { UserType } from "~/types/user";
 import { HelperUtils } from "~/untils/helpers";
+import { useUpdateProfile } from "../api/useUpdateProfile";
+
+const syncBoardMemberProfile = (board: BoardType, updatedUser: UserType) => ({
+  ...board,
+  members: board.members?.map((member) =>
+    member._id === updatedUser._id ? { ...member, ...updatedUser } : member
+  ),
+});
 
 const Profiles: React.FC = () => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const userAtom = useAtomValue(user);
+  const [profileOpen, setProfileOpen] = React.useState(false);
+  const [username, setUsername] = React.useState("");
+  const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = React.useState("");
+  const avatarInputRef = React.useRef<HTMLInputElement>(null);
+  const [userAtom, setUserAtom] = useAtom(user);
+  const [, setBoardData] = useAtom(boardDataAtom);
   const open = Boolean(anchorEl);
 
   const signOut = useSignOut();
+  const updateProfileMutation = useUpdateProfile();
+  const queryClient = useQueryClient();
+
+  const trimmedUsername = username.trim();
+  const isUsernameValid = trimmedUsername.length >= 3;
+  const isAvatarFileValid = !avatarFile || avatarFile.type.startsWith("image/");
+  const shouldShowAvatarError = Boolean(avatarFile) && !isAvatarFileValid;
+  const isSaveDisabled =
+    !isUsernameValid || !isAvatarFileValid || updateProfileMutation.isPending;
+
+  React.useEffect(() => {
+    if (!profileOpen) return;
+    setUsername(userAtom?.username ?? "");
+    setAvatarFile(null);
+    setAvatarPreview(userAtom?.avatar ?? "");
+  }, [profileOpen, userAtom]);
+
+  React.useEffect(() => {
+    if (!avatarFile) return undefined;
+    const objectUrl = URL.createObjectURL(avatarFile);
+    setAvatarPreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [avatarFile]);
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -30,9 +82,58 @@ const Profiles: React.FC = () => {
     setAnchorEl(null);
   };
 
+  const handleOpenProfile = () => {
+    setAnchorEl(null);
+    setProfileOpen(true);
+  };
+
+  const handleCloseProfile = () => {
+    setProfileOpen(false);
+  };
+
+  const handleChooseAvatar = () => {
+    avatarInputRef.current?.click();
+  };
+
+  const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    event.target.value = "";
+    setAvatarFile(file);
+  };
+
   const handleLogout = async () => {
     setAnchorEl(null);
     await signOut();
+  };
+
+  const handleSubmitProfile = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSaveDisabled) return;
+
+    const response = await updateProfileMutation.mutateAsync({
+      username: trimmedUsername,
+      avatarFile,
+    });
+    const updatedUser = response.data;
+    setUserAtom(updatedUser);
+    setBoardData((currentBoard) =>
+      currentBoard ? syncBoardMemberProfile(currentBoard, updatedUser) : currentBoard
+    );
+    queryClient.setQueriesData<RestResponse<BoardType>>(
+      { queryKey: [getABoardApiSpec.name] },
+      (currentData) =>
+        currentData?.data
+          ? {
+              ...currentData,
+              data: syncBoardMemberProfile(currentData.data, updatedUser),
+            }
+          : currentData
+    );
+    await queryClient.invalidateQueries({
+      queryKey: [getBoardInvitationsApiSpec.name],
+    });
+    await queryClient.invalidateQueries({ queryKey: [getABoardApiSpec.name] });
+    setProfileOpen(false);
   };
 
   return (
@@ -46,7 +147,7 @@ const Profiles: React.FC = () => {
           aria-haspopup="true"
           aria-expanded={open ? "true" : undefined}
         >
-          {userAtom?.avatar !== null ? (
+          {userAtom?.avatar ? (
             <Avatar alt={userAtom?.username} src={userAtom?.avatar} />
           ) : (
             <Avatar
@@ -57,7 +158,7 @@ const Profiles: React.FC = () => {
                 fontSize: "13px",
               }}
             >
-              HelperUtils.getInitials(userAtom?.username)
+              {HelperUtils.getInitials(userAtom?.username)}
             </Avatar>
           )}
         </IconButton>
@@ -67,11 +168,11 @@ const Profiles: React.FC = () => {
         id="account-menu"
         open={open}
         onClose={handleClose}
-        onClick={handleClose}
         slotProps={{
           paper: {
             elevation: 0,
             sx: {
+              paddingX: 2,
               overflow: "visible",
               filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
               mt: 1.5,
@@ -99,25 +200,13 @@ const Profiles: React.FC = () => {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <MenuItem onClick={handleClose}>
-          <Avatar /> Profile
-        </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <Avatar /> My account
+        <MenuItem onClick={handleOpenProfile}>
+          <Avatar src={userAtom?.avatar || undefined}>
+            {HelperUtils.getInitials(userAtom?.username)}
+          </Avatar>
+          Profile
         </MenuItem>
         <Divider />
-        <MenuItem onClick={handleClose}>
-          <ListItemIcon>
-            <PersonAdd fontSize="small" />
-          </ListItemIcon>
-          Add another account
-        </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <ListItemIcon>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          Settings
-        </MenuItem>
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <Logout fontSize="small" />
@@ -125,6 +214,76 @@ const Profiles: React.FC = () => {
           Logout
         </MenuItem>
       </Menu>
+
+      <Dialog
+        open={profileOpen}
+        onClose={handleCloseProfile}
+        fullWidth
+        maxWidth="xs"
+      >
+        <Box component="form" onSubmit={handleSubmitProfile}>
+          <DialogTitle>Edit profile</DialogTitle>
+          <DialogContent
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+              pt: 1,
+            }}
+          >
+            <Avatar
+              alt={trimmedUsername}
+              src={avatarPreview || undefined}
+              sx={{
+                width: 88,
+                height: 88,
+                bgcolor: "primary.main",
+                fontSize: 28,
+              }}
+            >
+              {HelperUtils.getInitials(trimmedUsername)}
+            </Avatar>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleAvatarChange}
+            />
+            <Button variant="outlined" onClick={handleChooseAvatar}>
+              Upload avatar
+            </Button>
+            <TextField
+              label="Username"
+              fullWidth
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              error={Boolean(trimmedUsername) && !isUsernameValid}
+              helperText={
+                Boolean(trimmedUsername) && !isUsernameValid
+                  ? "Username must be at least 3 characters"
+                  : " "
+              }
+            />
+            {shouldShowAvatarError && (
+              <Box sx={{ width: "100%", color: "error.main", fontSize: 13 }}>
+                Avatar must be an image file
+              </Box>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseProfile}>Cancel</Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isSaveDisabled}
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
     </Box>
   );
 };

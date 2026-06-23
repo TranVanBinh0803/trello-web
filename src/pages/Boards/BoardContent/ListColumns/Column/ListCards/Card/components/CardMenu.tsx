@@ -65,7 +65,7 @@ const CardMenu: React.FC<CardMenuProps> = ({
         <ListItemIcon>
           <EditNote fontSize="small" />
         </ListItemIcon>
-        <ListItemText>Edit card</ListItemText>
+        <ListItemText>Edit title card</ListItemText>
       </MenuItem>
       
       <MenuItem onClick={handleOpenCard}>
@@ -73,20 +73,6 @@ const CardMenu: React.FC<CardMenuProps> = ({
           <AddCard fontSize="small" />
         </ListItemIcon>
         <ListItemText>Open card</ListItemText>
-      </MenuItem>
-      
-      <MenuItem>
-        <ListItemIcon>
-          <PermIdentity fontSize="small" />
-        </ListItemIcon>
-        <ListItemText>Change members</ListItemText>
-      </MenuItem>
-      
-      <MenuItem>
-        <ListItemIcon>
-          <AccessTime fontSize="small" />
-        </ListItemIcon>
-        <ListItemText>Edit dates</ListItemText>
       </MenuItem>
       
       <Divider />

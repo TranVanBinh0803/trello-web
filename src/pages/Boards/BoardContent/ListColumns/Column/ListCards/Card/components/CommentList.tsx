@@ -2,7 +2,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { ChatOutlined } from "@mui/icons-material";
 import { useState, useEffect } from "react";
 import ReactQuill from "react-quill-new";
-import { CardType, CommentType } from "~/types/card";
+import { ActivityType, CardType, CommentType } from "~/types/card";
 import { useAtomValue } from "jotai";
 import { user } from "~/atoms/AuthAtoms";
 import { useAddComment } from "../api/useAddComment";
@@ -10,16 +10,27 @@ import CommentItem from "./CommentItem";
 import { addCommentRequest } from "~/apis/services/card/Card";
 import { useUpdateComment } from "../api/useUpdateComment";
 import { useDeleteComment } from "../api/useDeleteComment";
+import ActivityItem from "./ActivityItem";
 
 interface CommentListProps {
   comments: CommentType[];
+  activities: ActivityType[];
   card: CardType;
+  onCardChange: (card: CardType) => void;
 }
 
-const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
+const CommentList: React.FC<CommentListProps> = ({
+  card,
+  comments,
+  activities,
+  onCardChange,
+}) => {
   const [value, setValue] = useState("");
   const [isAddComment, setIsAddComment] = useState(false);
+  const [showDetails, setShowDetails] = useState(true);
   const [localComments, setLocalComments] = useState<CommentType[]>(comments);
+  const [localActivities, setLocalActivities] =
+    useState<ActivityType[]>(activities);
 
   const userAtom = useAtomValue(user);
   const addCommentMutation = useAddComment(card._id);
@@ -29,6 +40,10 @@ const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
   useEffect(() => {
     setLocalComments(comments);
   }, [comments]);
+
+  useEffect(() => {
+    setLocalActivities(activities);
+  }, [activities]);
 
   const handleAddComment = () => {
     const commentRequest: addCommentRequest = {
@@ -51,6 +66,8 @@ const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
       onSuccess: (data) => {
         const newComments = data.data.comments ?? [];
         setLocalComments(newComments);
+        setLocalActivities(data.data.activities ?? []);
+        onCardChange(data.data);
       },
     });
     setIsAddComment(false);
@@ -68,6 +85,8 @@ const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
         onSuccess: (data) => {
           const updatedComments = data.data.comments ?? [];
           setLocalComments(updatedComments);
+          setLocalActivities(data.data.activities ?? []);
+          onCardChange(data.data);
         },
       }
     );
@@ -80,6 +99,8 @@ const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
         onSuccess: (data) => {
           const updatedComments = data.data.comments ?? [];
           setLocalComments(updatedComments);
+          setLocalActivities(data.data.activities ?? []);
+          onCardChange(data.data);
         },
       }
     );
@@ -106,7 +127,9 @@ const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
           <ChatOutlined fontSize="small" />
           <Typography variant="body2">Comments and activity</Typography>
         </Box>
-        <Button variant="outlined">Show Details</Button>
+        <Button variant="outlined" onClick={() => setShowDetails((prev) => !prev)}>
+          {showDetails ? "Hide Details" : "Show Details"}
+        </Button>
       </Box>
 
       {!isAddComment && (
@@ -155,6 +178,26 @@ const CommentList: React.FC<CommentListProps> = ({ card, comments }) => {
           }
         />
       ))}
+
+      {showDetails && (
+        <Box mt={2}>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            Activity
+          </Typography>
+          {localActivities.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No activity yet
+            </Typography>
+          ) : (
+            localActivities
+              .slice()
+              .reverse()
+              .map((activity) => (
+                <ActivityItem key={activity._id} activity={activity} />
+              ))
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

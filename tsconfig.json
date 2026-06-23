@@ -3,6 +3,7 @@
     "types": ["vite/client"],
     "target": "ESNext",
     "module": "ESNext",
+    "ignoreDeprecations": "6.0",
     "moduleResolution": "node",
     "strict": true,
     "jsx": "react-jsx",

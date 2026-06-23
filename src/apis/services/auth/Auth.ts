@@ -63,4 +63,49 @@ export const logoutApiSpec: ApiSpec = {
 };
 
 export const logout = () =>
-  restClient.url(logoutApiSpec.uri).get().res<RestResponse<any>>();
+  restClient.url(logoutApiSpec.uri).get().res<RestResponse<null>>();
+
+export const forgotPasswordApiSpec: ApiSpec = {
+  name: "forgotPassword",
+  method: HttpMethod.POST,
+  uri: "/auths/forgot-password",
+};
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  email: string;
+  expiresAt: number;
+}
+
+export const forgotPassword = (request: ForgotPasswordRequest) =>
+  restClient
+    .url(forgotPasswordApiSpec.uri)
+    .json(request)
+    .post()
+    .json<RestResponse<ForgotPasswordResponse>>();
+
+export const resetPasswordApiSpec: ApiSpec = {
+  name: "resetPassword",
+  method: HttpMethod.POST,
+  uri: "/auths/reset-password",
+};
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  password: string;
+}
+
+export interface ResetPasswordResponse {
+  email: string;
+}
+
+export const resetPassword = (request: ResetPasswordRequest) =>
+  restClient
+    .url(resetPasswordApiSpec.uri)
+    .json(request)
+    .post()
+    .json<RestResponse<ResetPasswordResponse>>();

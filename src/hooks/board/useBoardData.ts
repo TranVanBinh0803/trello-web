@@ -1,13 +1,13 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useSetAtom } from "jotai";
 import { boardDataAtom } from "~/atoms/BoardAtom";
 import { useGetABoard } from "~/pages/Boards/api/useGetABoard";
 
-export const useBoardData = (boardId: string) => {
+export const useBoardData = (boardId?: string) => {
   const { data, isFetching } = useGetABoard(boardId);
   const setBoardData = useSetAtom(boardDataAtom);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (data?.data) {
       setBoardData(data.data);
     }

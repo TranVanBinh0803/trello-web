@@ -127,10 +127,9 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
             gap: 1,
           }}
         >
-          {colors.map((color, index) => (
-            <Tooltip title={color} key={index}>
+          {colors.map((color) => (
+            <Tooltip title={color} key={color}>
               <Box
-                key={index}
                 onClick={() => handleColorSelect(color)}
                 sx={{
                   height: 40,
@@ -145,10 +144,6 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
             </Tooltip>
           ))}
         </Box>
-
-        <Button variant="outlined" fullWidth sx={{ mt: 2, py: 1.5 }} disabled>
-          Enable colorblind friendly mode
-        </Button>
       </Box>
 
       <Box sx={{ mb: 3 }}>
@@ -203,12 +198,6 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
             Upload a cover image
           </Button>
         </label>
-        <Typography
-          variant="caption"
-          sx={{ mt: 1, display: "block", color: "text.secondary" }}
-        >
-          Tip: Drag an image on to the card to upload it.
-        </Typography>
       </Box>
 
       <Divider sx={{ my: 2 }} />

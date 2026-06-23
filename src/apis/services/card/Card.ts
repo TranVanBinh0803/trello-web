@@ -1,5 +1,5 @@
 import { restClient } from "~/apis/restClient";
-import { CardType, CommentType } from "~/types/card";
+import { CardLabelType, CardType, ChecklistType } from "~/types/card";
 import { ApiSpec, HttpMethod, RestResponse } from "~/types/common";
 
 /**
@@ -37,6 +37,11 @@ export type updateCardRequest = {
   title?: string;
   description?: string;
   cover?: string;
+  completed?: boolean;
+  labels?: CardLabelType[];
+  startDate?: string | null;
+  dueDate?: string | null;
+  checklists?: ChecklistType[];
 };
 
 export const updateCard = (cardId: string, request: updateCardRequest) =>

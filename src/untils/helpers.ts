@@ -1,5 +1,9 @@
+import { AttachmentType } from "~/types/card";
+
 export namespace HelperUtils {
-  export const getInitials = (name: string) => {
+  export const getInitials = (name?: string) => {
+    if (!name) return "?";
+
     return name
       .split(" ")
       .map((part) => part[0])
@@ -7,12 +11,12 @@ export namespace HelperUtils {
       .toUpperCase();
   };
 
-  export const isEmpty = (value: any) => {
+  export const isEmpty = (value: unknown) => {
     if (
       typeof value === "undefined" ||
       value === null ||
       value === "" ||
-      value.length === 0
+      (Array.isArray(value) && value.length === 0)
     ) {
       return true;
     }
@@ -44,22 +48,24 @@ export namespace HelperUtils {
     return IMAGE_EXTENSIONS.includes(extension);
   };
 
-  export const getImageAttachments = (attachments: any[]): any[] => {
+  export const getImageAttachments = (
+    attachments: AttachmentType[] = []
+  ): AttachmentType[] => {
     if (!attachments || !Array.isArray(attachments)) return [];
     return attachments.filter(
       (attachment) => attachment.fileName && isImage(attachment.fileName)
     );
   };
-  export const encodeImageUrl = (url: any) => {
-    if (url.includes('%')) {
+  export const encodeImageUrl = (url: string) => {
+    if (url.includes("%")) {
       return url;
     }
-    
-    const urlParts = url.split('/');
+
+    const urlParts = url.split("/");
     const filename = urlParts[urlParts.length - 1];
     const encodedFilename = encodeURIComponent(filename);
-    
+
     urlParts[urlParts.length - 1] = encodedFilename;
-    return urlParts.join('/');
+    return urlParts.join("/");
   };
 }

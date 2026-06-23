@@ -3,11 +3,12 @@ import { useSetAtom } from "jotai";
 import { toast } from "react-toastify";
 import { archiveColumn, archiveColumnRequest} from "~/apis/services/board/Board";
 import { boardDataAtom } from "~/atoms/BoardAtom";
+import { BoardType } from "~/types/board";
 import { RestError, RestResponse } from "~/types/common";
 
 export const useArchiveColumn = (boardId: string) => {
   const setBoardData = useSetAtom(boardDataAtom);
-  return useMutation<RestResponse<any>, RestError, archiveColumnRequest>({
+  return useMutation<RestResponse<BoardType>, RestError, archiveColumnRequest>({
     mutationFn: (request) => archiveColumn(boardId, request),
     onMutate: async (request) => {
       const { columnId } = request;

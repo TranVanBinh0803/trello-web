@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import { mapOrder } from "~/untils/sorts";
 import ListColumns from "./ListColumns/ListColumns";
@@ -38,7 +38,13 @@ const ACTIVE_DRAG_ITEM_TYPE = {
 type ActiveDragItemType =
   (typeof ACTIVE_DRAG_ITEM_TYPE)[keyof typeof ACTIVE_DRAG_ITEM_TYPE];
 
-const BoardContent: React.FC<any> = ({ isFetching }) => {
+interface BoardContentProps {
+  isFetching: boolean;
+}
+
+type ActiveDragItemData = ColumnType | CardType;
+
+const BoardContent = ({ isFetching }: BoardContentProps) => {
   const board = useAtomValue(boardDataAtom);
 
   const mouseSensor = useSensor(MouseSensor, {
@@ -59,7 +65,8 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
     useState<UniqueIdentifier | null>(null);
   const [activeDragItemType, setActiveDragItemType] =
     useState<ActiveDragItemType | null>(null);
-  const [activeDragItemData, setActiveDragItemData] = useState<any>(null);
+  const [activeDragItemData, setActiveDragItemData] =
+    useState<ActiveDragItemData | null>(null);
   const [oldColumn, setOldColumn] = useState<ColumnType | null>(null);
   const [dragCardColumnId, setDragCardColumnId] = useState<string>("");
 
@@ -73,7 +80,7 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
     }
   }, [board]);
 
-  if (!board) return null;
+  const isInitialLoading = !board && isFetching;
 
   const findColumnByCardId = (cardId: string): ColumnType | undefined => {
     return orderedColumns.find((column) =>
@@ -170,7 +177,7 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
         ? ACTIVE_DRAG_ITEM_TYPE.CARD
         : ACTIVE_DRAG_ITEM_TYPE.COLUMN
     );
-    setActiveDragItemData(event.active.data.current);
+    setActiveDragItemData(event.active.data.current as ActiveDragItemData);
     if (event.active.data.current?.columnId) {
       const foundColumn = findColumnByCardId(event.active.id as string);
       setOldColumn(foundColumn ?? null);
@@ -332,11 +339,11 @@ const BoardContent: React.FC<any> = ({ isFetching }) => {
           width: "100%",
           p: "10px 0",
           display: "flex",
-          alignItems: isFetching ? "center" : "flex-start",
-          justifyContent: isFetching ? "center" : "flex-start",
+          alignItems: isInitialLoading ? "center" : "flex-start",
+          justifyContent: isInitialLoading ? "center" : "flex-start",
         }}
       >
-        {isFetching ? (
+        {isInitialLoading ? (
           <CircularProgress />
         ) : (
           <>
