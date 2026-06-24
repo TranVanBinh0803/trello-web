@@ -1,13 +1,25 @@
 import {
   Box,
   Button,
+  ClickAwayListener,
   InputAdornment,
+  List,
+  ListItemButton,
+  ListItemText,
   Menu,
   MenuItem,
+  Paper,
+  Popper,
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useRef, useState, ChangeEvent, MouseEvent } from "react";
+import React, {
+  useMemo,
+  useRef,
+  useState,
+  ChangeEvent,
+  MouseEvent,
+} from "react";
 import ModeSelect from "../ModeSelect/ModeSelect";
 import AppsIcon from "@mui/icons-material/Apps";
 import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
@@ -19,23 +31,58 @@ import { accessTokenAtom } from "~/atoms/AuthAtoms";
 import { useImportBoard } from "./api/useImportBoard";
 import { API_ROOT } from "~/untils/constants";
 import Notifications from "./Menus/Notifications";
+import { useNavigate } from "react-router-dom";
+import { useGetMyBoards } from "~/pages/Boards/api/useGetMyBoards";
 
 const AppBar: React.FC = () => {
   const [searchValue, setSearchValue] = useState<string>("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const [createAnchorEl, setCreateAnchorEl] = useState<HTMLElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchAnchorRef = useRef<HTMLDivElement>(null);
   const accessToken = useAtomValue(accessTokenAtom);
+  const navigate = useNavigate();
+  const isLoggedIn = Boolean(accessToken);
   
   const importBoardMutation = useImportBoard();
+  const myBoardsQuery = useGetMyBoards(isLoggedIn);
 
   const openCreateMenu = Boolean(createAnchorEl);
+  const normalizedSearchValue = searchValue.trim().toLowerCase();
+  const searchResults = useMemo(() => {
+    if (!normalizedSearchValue) return [];
+
+    return (myBoardsQuery.data?.data ?? [])
+      .filter((board) => {
+        const title = board.title.toLowerCase();
+        const description = board.description.toLowerCase();
+        return (
+          title.includes(normalizedSearchValue) ||
+          description.includes(normalizedSearchValue)
+        );
+      })
+      .slice(0, 6);
+  }, [myBoardsQuery.data?.data, normalizedSearchValue]);
+  const openSearchResults = searchFocused && Boolean(normalizedSearchValue);
 
   const handleSearch = (): void => {
-    console.log("Click search:", searchValue);
+    const firstBoard = searchResults[0];
+    if (!firstBoard) {
+      setSearchFocused(true);
+      return;
+    }
+    handleOpenBoard(firstBoard._id);
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     setSearchValue(e.target.value);
+    setSearchFocused(true);
+  };
+
+  const handleOpenBoard = (boardId: string) => {
+    setSearchValue("");
+    setSearchFocused(false);
+    navigate(`/boards/${boardId}`);
   };
 
   const handleOpenCreateMenu = (event: MouseEvent<HTMLElement>) => {
@@ -104,8 +151,23 @@ const AppBar: React.FC = () => {
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <AppsIcon sx={{ color: "primary.main" }} />
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <Box
+          component="button"
+          type="button"
+          aria-label="Go to boards"
+          onClick={() => navigate("/boards")}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            p: 0,
+            border: 0,
+            bgcolor: "transparent",
+            cursor: "pointer",
+            color: "primary.main",
+          }}
+        >
+          <AppsIcon sx={{ color: "primary.main" }} />
           <Typography
             component="span"
             sx={{
@@ -114,9 +176,10 @@ const AppBar: React.FC = () => {
               color: "primary.main",
             }}
           >
-            Trello
+            Trolle
           </Typography>
         </Box>
+        {isLoggedIn && (
         <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
           <Button
             variant="outlined"
@@ -145,33 +208,117 @@ const AppBar: React.FC = () => {
             onChange={handleImportFileChange}
           />
         </Box>
+        )}
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <TextField
-          id="outlined-search"
-          type="search"
-          size="small"
-          value={searchValue}
-          onChange={handleChange}
-          sx={{ minWidth: "120px", maxWidth: "170px" }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon
-                    onClick={handleSearch}
-                    sx={{ cursor: "pointer", color: "primary.main" }}
-                  />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
+        <ClickAwayListener onClickAway={() => setSearchFocused(false)}>
+          <Box ref={searchAnchorRef} sx={{ position: "relative" }}>
+            <TextField
+              id="outlined-search"
+              type="search"
+              size="small"
+              placeholder="Search boards"
+              value={searchValue}
+              onChange={handleChange}
+              onFocus={() => setSearchFocused(true)}
+              disabled={!isLoggedIn}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  handleSearch();
+                }
+              }}
+              sx={{ minWidth: "150px", maxWidth: "210px" }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon
+                        onClick={handleSearch}
+                        sx={{ cursor: "pointer", color: "primary.main" }}
+                      />
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+            <Popper
+              open={openSearchResults}
+              anchorEl={searchAnchorRef.current}
+              placement="bottom-end"
+              sx={{ zIndex: (theme) => theme.zIndex.modal + 1 }}
+            >
+              <Paper
+                elevation={8}
+                sx={{
+                  mt: 1,
+                  width: { xs: 260, sm: 340 },
+                  maxHeight: 360,
+                  overflowY: "auto",
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: "divider",
+                  bgcolor: "background.paper",
+                }}
+              >
+                <Box sx={{ px: 1.5, pt: 1.25, pb: 0.5 }}>
+                  <Typography
+                    variant="caption"
+                    fontWeight={800}
+                    color="text.secondary"
+                  >
+                    Boards
+                  </Typography>
+                </Box>
+                <List dense disablePadding>
+                  {searchResults.length === 0 ? (
+                    <ListItemButton disabled>
+                      <ListItemText
+                        primary="No boards found"
+                        secondary="Try another board name or description"
+                      />
+                    </ListItemButton>
+                  ) : (
+                    searchResults.map((board) => (
+                      <ListItemButton
+                        key={board._id}
+                        onClick={() => handleOpenBoard(board._id)}
+                        sx={{ alignItems: "flex-start", px: 1.5, py: 1 }}
+                      >
+                        <ListItemText
+                          primary={board.title}
+                          secondary={board.description}
+                          primaryTypographyProps={{ fontWeight: 700 }}
+                          secondaryTypographyProps={{
+                            sx: {
+                              display: "-webkit-box",
+                              WebkitLineClamp: 1,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                            },
+                          }}
+                        />
+                      </ListItemButton>
+                    ))
+                  )}
+                </List>
+              </Paper>
+            </Popper>
+          </Box>
+        </ClickAwayListener>
 
         <ModeSelect />
-        <Notifications/>
-        <Profiles />
+        {isLoggedIn ? (
+          <>
+            <Notifications />
+            <Profiles />
+          </>
+        ) : (
+          <Button variant="contained" onClick={() => navigate("/login")}>
+            Login
+          </Button>
+        )}
       </Box>
     </Box>
   );

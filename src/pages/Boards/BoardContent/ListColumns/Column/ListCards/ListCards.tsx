@@ -7,7 +7,7 @@ import {
 } from "@dnd-kit/sortable";
 import { ListCardsProps } from "~/types/card";
 
-const ListCards: React.FC<ListCardsProps> = ({ cards }) => {
+const ListCards: React.FC<ListCardsProps> = ({ cards, canEdit = true }) => {
   return (
     <SortableContext
       items={cards?.map((c) => c._id)}
@@ -37,7 +37,7 @@ const ListCards: React.FC<ListCardsProps> = ({ cards }) => {
         }}
       >
         {cards?.map((card) => (
-          <Card key={card._id} card={card}/>
+          <Card key={card._id} card={card} canEdit={canEdit} />
         ))}
       </Box>
     </SortableContext>

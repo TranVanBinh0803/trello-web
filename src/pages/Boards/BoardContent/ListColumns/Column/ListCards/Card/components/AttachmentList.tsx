@@ -10,12 +10,14 @@ interface AttachmentListProps {
   card: CardType;
   attachments: AttachmentType[];
   onCardChange: (card: CardType) => void;
+  canEdit?: boolean;
 }
 
 const AttachmentList: React.FC<AttachmentListProps> = ({
   card,
   attachments,
   onCardChange,
+  canEdit = true,
 }) => {
   const updateAttachmentMutation = useUpdateAttachment();
   const deleteAttachmentMutation = useDeleteAttachment();
@@ -25,6 +27,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
     attachmentId: string,
     updatedFileName: string,
   ) => {
+    if (!canEdit) return;
     updateAttachmentMutation.mutate(
       {
         cardId: card._id,
@@ -41,6 +44,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
   };
 
   const handleDeleteAttachment = (attachmentId: string) => {
+    if (!canEdit) return;
     deleteAttachmentMutation.mutate(
       {
         cardId: card._id,
@@ -103,6 +107,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({
                   handleUpdateAttachment(attachment._id, updatedFileName)
                 }
                 onDelete={() => handleDeleteAttachment(attachment._id)}
+                canEdit={canEdit}
               />
             ))}
           </Stack>

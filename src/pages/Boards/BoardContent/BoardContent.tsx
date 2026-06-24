@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Box, CircularProgress } from "@mui/material";
+import { toast } from "react-toastify";
 import { mapOrder } from "~/untils/sorts";
 import ListColumns from "./ListColumns/ListColumns";
 import {
@@ -25,6 +26,7 @@ import { CardType } from "~/types/card";
 import Column from "./ListColumns/Column/Column";
 import Card from "./ListColumns/Column/ListCards/Card/Card";
 import { useAtomValue } from "jotai";
+import { user } from "~/atoms/AuthAtoms";
 import { boardDataAtom } from "~/atoms/BoardAtom";
 import { useDragColumn } from "./api/useDragColumn";
 import { useDragCard } from "./api/useDragCard";
@@ -46,6 +48,7 @@ type ActiveDragItemData = ColumnType | CardType;
 
 const BoardContent = ({ isFetching }: BoardContentProps) => {
   const board = useAtomValue(boardDataAtom);
+  const currentUser = useAtomValue(user);
 
   const mouseSensor = useSensor(MouseSensor, {
     activationConstraint: {
@@ -69,10 +72,16 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
     useState<ActiveDragItemData | null>(null);
   const [oldColumn, setOldColumn] = useState<ColumnType | null>(null);
   const [dragCardColumnId, setDragCardColumnId] = useState<string>("");
+  const dragSnapshotRef = useRef<ColumnType[]>([]);
 
   const dragColumnMutation = useDragColumn(board?._id || "");
   const dragCardMutation = useDragCard(dragCardColumnId);
   const dragCardBetweenColumnMutation = useDragCardBetweenColumn();
+  const canEdit = Boolean(
+    board?.memberIds?.some(
+      (memberId) => memberId.toString() === currentUser?._id
+    )
+  );
 
   useEffect(() => {
     if (board?.columns && board?.columnOrderIds) {
@@ -86,6 +95,13 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
     return orderedColumns.find((column) =>
       column?.cards?.some((card) => card._id === cardId)
     );
+  };
+
+  const rollbackDragState = (message: string) => {
+    if (dragSnapshotRef.current.length) {
+      setOrderedColumns(cloneDeep(dragSnapshotRef.current));
+    }
+    toast.error(message);
   };
 
   const moveCardBetweenDifferentColumns = (
@@ -171,6 +187,8 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
   };
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (!canEdit) return;
+    dragSnapshotRef.current = cloneDeep(orderedColumns);
     setActiveDragItemId(event.active.id);
     setActiveDragItemType(
       event.active.data.current?.columnId
@@ -186,6 +204,7 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
   };
 
   const handleDragOver = (event: DragOverEvent) => {
+    if (!canEdit) return;
     if (activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) return;
 
     const { active, over } = event;
@@ -214,6 +233,7 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    if (!canEdit) return;
     const { active, over } = event;
     if (!active || !over) return;
 
@@ -247,6 +267,10 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
           newColumnId: overColumn._id,
           newCardOrderIds: newOverColumnCardOrderIds,
           cardId: activeDraggingCardId,
+        }, {
+          onError: (error) => {
+            rollbackDragState(error?.message || "Failed to move card");
+          },
         });
       } else {
         const oldCardIndex = oldColumn.cards.findIndex(
@@ -274,6 +298,10 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
           if (oldColumn?._id) {
             dragCardMutation.mutate({
               cardOrderIds: targetColumn.cardOrderIds,
+            }, {
+              onError: (error) => {
+                rollbackDragState(error?.message || "Failed to reorder cards");
+              },
             });
           }
           return nextColumns;
@@ -304,6 +332,10 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
       if (board?._id) {
         dragColumnMutation.mutate({
           columnOrderIds: columnOrderIds,
+        }, {
+          onError: (error) => {
+            rollbackDragState(error?.message || "Failed to reorder columns");
+          },
         });
       }
     }
@@ -329,7 +361,7 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
-      sensors={sensors}
+      sensors={canEdit ? sensors : []}
       collisionDetection={closestCorners}
     >
       <Box
@@ -347,7 +379,7 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
           <CircularProgress />
         ) : (
           <>
-            <ListColumns columns={orderedColumns} />
+            <ListColumns columns={orderedColumns} canEdit={canEdit} />
 
             <DragOverlay dropAnimation={dropAnimation}>
               {activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN &&
@@ -356,10 +388,15 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
                   isDragging
                   column={activeDragItemData as ColumnType}
                   isUsingDragOverlay
+                  canEdit={canEdit}
                 />
               ) : activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.CARD &&
                 activeDragItemData ? (
-                <Card card={activeDragItemData as CardType} isDragging />
+                <Card
+                  card={activeDragItemData as CardType}
+                  isDragging
+                  canEdit={canEdit}
+                />
               ) : null}
             </DragOverlay>
           </>

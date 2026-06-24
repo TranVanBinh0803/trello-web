@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 
 const Board: React.FC = () => {
   const { boardId } = useParams<{ boardId: string }>();
-  const { isFetching } = useBoardData(boardId);
+  const { error, isError, isFetching } = useBoardData(boardId);
 
   if (!boardId) {
     return (
@@ -24,6 +24,29 @@ const Board: React.FC = () => {
         >
           <Typography color="text.secondary">
             Select a board or import one from the Create menu.
+          </Typography>
+        </Box>
+      </Container>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Container disableGutters maxWidth={false} sx={{ height: "100vh" }}>
+        <AppBar />
+        <Box
+          sx={{
+            height: (theme) =>
+              `calc(100vh - ${theme.trello.appBarHeight})`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            px: 2,
+            textAlign: "center",
+          }}
+        >
+          <Typography color="text.secondary">
+            {error?.message || "You cannot access this board."}
           </Typography>
         </Box>
       </Container>

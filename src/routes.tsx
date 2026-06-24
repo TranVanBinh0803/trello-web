@@ -7,7 +7,7 @@ import ResetPasswordPage from "./pages/Auth/ResetPasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute/ProtectedRoute";
 import Board from "./pages/Boards/_id";
 import BoardsPage from "./pages/Boards";
-import Test from "./pages/Test";
+import { NotFoundPage } from "./pages/Common/NotFoundPage";
 
 const publicRoutes: RouteObject[] = [
   {
@@ -26,6 +26,14 @@ const publicRoutes: RouteObject[] = [
     path: "/reset-password",
     element: <ResetPasswordPage />,
   },
+  {
+    path: "/boards/:boardId",
+    element: <Board />,
+  },
+  {
+    path: "/*",
+    element: <NotFoundPage />,
+  },
 ];
 const privateRoutes: RouteObject[] = [
   {
@@ -40,8 +48,8 @@ const privateRoutes: RouteObject[] = [
         element: <BoardsPage />,
       },
       {
-        path: "/boards/:boardId",
-        element: <Board />,
+        path: "/*",
+        element: <NotFoundPage />,
       },
     ],
   },

@@ -77,7 +77,22 @@ const CardMenu: React.FC<CardMenuProps> = ({
       
       <Divider />
       
-      <MenuItem onClick={handleArchiveCard}>
+      <MenuItem
+        onClick={handleArchiveCard}
+        sx={{
+          mx: 1,
+          my: 0.5,
+          borderRadius: 1,
+          bgcolor: "error.main",
+          color: "error.contrastText",
+          "&:hover": {
+            bgcolor: "error.dark",
+          },
+          "& .MuiListItemIcon-root": {
+            color: "inherit",
+          },
+        }}
+      >
         <ListItemIcon>
           <Cloud fontSize="small" />
         </ListItemIcon>

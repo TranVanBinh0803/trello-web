@@ -17,6 +17,7 @@ interface CommentListProps {
   activities: ActivityType[];
   card: CardType;
   onCardChange: (card: CardType) => void;
+  canEdit?: boolean;
 }
 
 const CommentList: React.FC<CommentListProps> = ({
@@ -24,6 +25,7 @@ const CommentList: React.FC<CommentListProps> = ({
   comments,
   activities,
   onCardChange,
+  canEdit = true,
 }) => {
   const [value, setValue] = useState("");
   const [isAddComment, setIsAddComment] = useState(false);
@@ -46,6 +48,7 @@ const CommentList: React.FC<CommentListProps> = ({
   }, [activities]);
 
   const handleAddComment = () => {
+    if (!canEdit) return;
     const commentRequest: addCommentRequest = {
       authorName: userAtom?.username,
       avatar: userAtom?.avatar,
@@ -75,6 +78,7 @@ const CommentList: React.FC<CommentListProps> = ({
   };
 
   const handleUpdateComment = (commentId: string, updatedContent: string) => {
+    if (!canEdit) return;
     updateCommentMutation.mutate(
       {
         cardId: card._id,
@@ -93,6 +97,7 @@ const CommentList: React.FC<CommentListProps> = ({
   };
 
   const handleDeleteComment = (commentId: string) => {
+    if (!canEdit) return;
     deleteCommentMutation.mutate(
       { cardId: card._id, commentId: commentId },
       {
@@ -132,7 +137,7 @@ const CommentList: React.FC<CommentListProps> = ({
         </Button>
       </Box>
 
-      {!isAddComment && (
+      {canEdit && !isAddComment && (
         <Button
           variant="outlined"
           sx={{ width: "100%", justifyContent: "flex-start", mt: 1 }}
@@ -176,6 +181,7 @@ const CommentList: React.FC<CommentListProps> = ({
           onUpdate={(updatedContent) =>
             handleUpdateComment(comment._id, updatedContent)
           }
+          canEdit={canEdit}
         />
       ))}
 

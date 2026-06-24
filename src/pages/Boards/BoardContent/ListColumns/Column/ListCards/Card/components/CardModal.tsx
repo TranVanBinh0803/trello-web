@@ -34,6 +34,8 @@ import {
 } from "@mui/icons-material";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { cloneDeep } from "lodash";
+import { toast } from "react-toastify";
 import {
   CardLabelType,
   CardType,
@@ -51,6 +53,7 @@ interface CardModalProps {
   open: boolean;
   onClose: () => void;
   card: CardType;
+  canEdit?: boolean;
 }
 
 const LABEL_OPTIONS: CardLabelType[] = [
@@ -178,7 +181,7 @@ const getChecklistProgress = (checklists: ChecklistType[] = []) => {
   };
 };
 
-const CardModal = ({ open, onClose, card }: CardModalProps) => {
+const CardModal = ({ open, onClose, card, canEdit = true }: CardModalProps) => {
   const [descriptionValue, setDescriptionValue] = useState("");
   const [isOpenDescription, setIsOpenDescription] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -198,15 +201,23 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
     checklistProgress.completedItems === checklistProgress.totalItems;
 
   const updateLocalCard = (payload: updateCardRequest) => {
+    if (!canEdit) return;
+    const previousCard = cloneDeep(localCard);
     setLocalCard((prev) => ({ ...prev, ...payload }));
     updateCardMutation.mutate(payload, {
       onSuccess: (response) => {
         setLocalCard(response.data);
       },
+      onError: (error) => {
+        setLocalCard(previousCard);
+        setDescriptionValue(String(previousCard.description || ""));
+        toast.error(error?.message || "Failed to update card");
+      },
     });
   };
 
   const handleOpenCoverMenu = (event: MouseEvent<HTMLElement>) => {
+    if (!canEdit) return;
     setAnchorEl(event.currentTarget);
   };
 
@@ -412,15 +423,17 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
               {localCard.title}
             </Button>
             <Box display="flex" gap={0.5}>
-              <Tooltip title="Cover">
-                <IconButton
-                  size="small"
-                  onClick={handleOpenCoverMenu}
-                  sx={headerIconButtonStyle}
-                >
-                  <ImageOutlined fontSize="small" />
-                </IconButton>
-              </Tooltip>
+              {canEdit && (
+                <Tooltip title="Cover">
+                  <IconButton
+                    size="small"
+                    onClick={handleOpenCoverMenu}
+                    sx={headerIconButtonStyle}
+                  >
+                    <ImageOutlined fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              )}
               <Tooltip title="Close">
                 <IconButton
                   size="small"
@@ -451,16 +464,17 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                       <Box
                         onPointerDown={(event) => event.stopPropagation()}
                         onMouseDown={(event) => event.stopPropagation()}
-                        onClick={handleCompletedRadioClick}
+                        onClick={canEdit ? handleCompletedRadioClick : undefined}
                         sx={{
                           display: "flex",
                           alignItems: "center",
-                          cursor: "pointer",
+                          cursor: canEdit ? "pointer" : "default",
                         }}
                       >
                         <Checkbox
                           checked={Boolean(localCard.completed)}
                           onChange={handleToggleCompleted}
+                          disabled={!canEdit}
                           icon={<RadioButtonUnchecked />}
                           checkedIcon={<RadioButtonChecked />}
                           sx={[completedRadioSx, { pointerEvents: "none" }]}
@@ -481,6 +495,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                     )}
                   </Box>
 
+                  {canEdit && (
                   <Stack
                     direction="row"
                     flexWrap="wrap"
@@ -509,6 +524,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                       Checklist
                     </Button>
                   </Stack>
+                  )}
 
                   {labels.length > 0 && (
                     <Stack
@@ -731,14 +747,23 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                               >
                                 {checklist.title}
                               </Typography>
+                              {canEdit && (
                               <IconButton
                                 size="small"
                                 onClick={() =>
                                   handleDeleteChecklist(checklist._id)
                                 }
+                                sx={{
+                                  bgcolor: "error.main",
+                                  color: "error.contrastText",
+                                  "&:hover": {
+                                    bgcolor: "error.dark",
+                                  },
+                                }}
                               >
                                 <DeleteOutline fontSize="small" />
                               </IconButton>
+                              )}
                             </Stack>
                             <Stack gap={0.5}>
                               {checklist.items.map(
@@ -752,6 +777,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                                     <Checkbox
                                       size="small"
                                       checked={item.completed}
+                                      disabled={!canEdit}
                                       color={
                                         isCurrentChecklistCompleted
                                           ? "success"
@@ -779,6 +805,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                                     >
                                       {item.title}
                                     </Typography>
+                                    {canEdit && (
                                     <IconButton
                                       size="small"
                                       onClick={() =>
@@ -787,13 +814,22 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                                           item._id,
                                         )
                                       }
+                                      sx={{
+                                        bgcolor: "error.main",
+                                        color: "error.contrastText",
+                                        "&:hover": {
+                                          bgcolor: "error.dark",
+                                        },
+                                      }}
                                     >
                                       <DeleteOutline fontSize="small" />
                                     </IconButton>
+                                    )}
                                   </Stack>
                                 ),
                               )}
                             </Stack>
+                            {canEdit && (
                             <Stack direction="row" gap={1} sx={{ mt: 1 }}>
                               <TextField
                                 size="small"
@@ -819,6 +855,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                                 Add
                               </Button>
                             </Stack>
+                            )}
                             <Divider sx={{ mt: 2 }} />
                           </Box>
                           );
@@ -846,7 +883,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                       <Notes fontSize="small" />
                       <Typography variant="body2">Description</Typography>
                     </Box>
-                    {!HelperUtils.isEmpty(localCard.description) && (
+                    {canEdit && !HelperUtils.isEmpty(localCard.description) && (
                       <Button
                         variant="outlined"
                         onClick={() => setIsOpenDescription(true)}
@@ -894,7 +931,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                       </Box>
                     )}
                   </Box>
-                  {HelperUtils.isEmpty(localCard.description) && (
+                  {canEdit && HelperUtils.isEmpty(localCard.description) && (
                     <Button
                       variant="outlined"
                       sx={{
@@ -912,6 +949,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                       card={localCard}
                       attachments={localCard?.attachments ?? []}
                       onCardChange={handleSetLocalCard}
+                      canEdit={canEdit}
                     />
                   )}
                 </Box>
@@ -929,6 +967,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
                     comments={localCard?.comments ?? []}
                     activities={localCard?.activities ?? []}
                     onCardChange={handleSetLocalCard}
+                    canEdit={canEdit}
                   />
                 </Box>
               </Grid>
@@ -944,6 +983,7 @@ const CardModal = ({ open, onClose, card }: CardModalProps) => {
         onSetColorCover={handleSetColorCover}
         onSetLocalCard={handleSetLocalCard}
         card={localCard}
+        canEdit={canEdit}
       />
     </>
   );

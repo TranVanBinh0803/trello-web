@@ -67,9 +67,11 @@ export interface CardType {
 export type CardProps = {
   card: CardType;
   isDragging?: boolean;
+  canEdit?: boolean;
 };
 
 export type ListCardsProps = {
   cards: CardType[];
+  canEdit?: boolean;
 };
 

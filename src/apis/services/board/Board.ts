@@ -33,6 +33,18 @@ export const inviteBoardMemberApiSpec: ApiSpec = {
   uri: "/boards/:id/invitations",
 };
 
+export const leaveBoardApiSpec: ApiSpec = {
+  name: "leaveBoard",
+  method: HttpMethod.DELETE,
+  uri: "/boards/:id/members/me",
+};
+
+export const deleteBoardApiSpec: ApiSpec = {
+  name: "deleteBoard",
+  method: HttpMethod.DELETE,
+  uri: "/boards/:id/delete",
+};
+
 export type dragColumnRequest = {
   columnOrderIds: string[]
 };
@@ -80,6 +92,18 @@ export const inviteBoardMember = (
     .json(request)
     .post()
     .json<RestResponse<BoardInvitationType>>();
+
+export const leaveBoard = (boardId: string) =>
+  restClient
+    .url(leaveBoardApiSpec.uri.replace(":id", boardId))
+    .delete()
+    .json<RestResponse<BoardType>>();
+
+export const deleteBoard = (boardId: string) =>
+  restClient
+    .url(deleteBoardApiSpec.uri.replace(":id", boardId))
+    .delete()
+    .json<RestResponse<BoardType>>();
 
 export const importBoardApiSpec: ApiSpec = {
   name: "importBoard",

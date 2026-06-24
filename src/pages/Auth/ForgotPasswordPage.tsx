@@ -27,10 +27,14 @@ const Card = styled("div")(({ theme }) => ({
   [theme.breakpoints.up("sm")]: {
     maxWidth: "450px",
   },
-  background: "white",
+  backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.primary,
+  border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.shape.borderRadius,
   boxShadow:
-    "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
+    theme.palette.mode === "dark"
+      ? "0 14px 40px rgba(0, 0, 0, 0.45)"
+      : "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
 }));
 
 const PageContainer = styled(Stack)(({ theme }) => ({
@@ -39,7 +43,9 @@ const PageContainer = styled(Stack)(({ theme }) => ({
   justifyContent: "center",
   alignItems: "center",
   background:
-    "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
+    theme.palette.mode === "dark"
+      ? "radial-gradient(ellipse at 50% 50%, #1d2733, #000000)"
+      : "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
 }));
 
 export default function ForgotPasswordPage() {
@@ -104,7 +110,9 @@ export default function ForgotPasswordPage() {
               flexDirection: "column",
               gap: 1.5,
               p: 2,
-              bgcolor: "grey.100",
+              bgcolor: "background.default",
+              border: "1px solid",
+              borderColor: "divider",
               borderRadius: 1,
             }}
           >

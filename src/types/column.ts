@@ -15,10 +15,12 @@ export type ColumnProps = {
   column: ColumnType;
   isDragging?: boolean;
   isUsingDragOverlay?: boolean;
+  canEdit?: boolean;
 };
 
 export type ListColumnsProps = {
   columns: ColumnType[];
+  canEdit?: boolean;
 };
 
 export type NewColumn = {

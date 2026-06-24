@@ -25,6 +25,7 @@ interface CoverMenuProps {
   onSetColorCover: (color: string) => void;
   onSetLocalCard: (card: CardType) => void;
   card: CardType;
+  canEdit?: boolean;
 }
 
 // Predefined colors
@@ -49,13 +50,14 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
   onSetColorCover,
   onSetLocalCard,
   card,
+  canEdit = true,
 }) => {
   const addAttachmentMutation = useAddAttachment(card._id);
   const [localCard, setLocalCard] = useState<CardType>(card);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) {
+    if (!file || !canEdit) {
       return;
     }
     addAttachmentMutation.mutate(
@@ -73,10 +75,12 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
   };
 
   const handleColorSelect = (color: string) => {
+    if (!canEdit) return;
     onSetColorCover(color);
   };
 
   const handleAttachmentSelect = (fileUrl: string) => {
+    if (!canEdit) return;
     onSetCover(fileUrl);
   };
 

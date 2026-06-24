@@ -59,6 +59,13 @@ const DeleteConfirmMenu: React.FC<DeleteConfirmMenuProps> = ({
         color="error"
         fullWidth
         onClick={onConfirm}
+        sx={{
+          boxShadow: "none",
+          bgcolor: "error.main",
+          "&:hover": {
+            bgcolor: "error.dark",
+          },
+        }}
       >
         Delete {label}
       </Button>

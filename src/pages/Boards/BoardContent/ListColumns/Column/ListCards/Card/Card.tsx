@@ -33,6 +33,7 @@ import CardMenu from "./components/CardMenu";
 import { useUpdateCard } from "./api/useUpdateCard";
 import { useGetABoard } from "~/pages/Boards/api/useGetABoard";
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
 
 const completedRadioSx: SxProps<Theme> = (theme) => ({
   position: "relative",
@@ -79,7 +80,7 @@ const completedRadioSx: SxProps<Theme> = (theme) => ({
   },
 });
 
-const Card: React.FC<CardProps> = ({ card }) => {
+const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
   const getBoardQuery = useGetABoard(card.boardId);
   const hasDescription = Boolean(card?.description);
   const hasComments = Boolean(card?.comments?.length);
@@ -113,6 +114,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
   } = useSortable({
     id: card._id,
     data: { ...card },
+    disabled: !canEdit,
   });
 
   const handleOpenModal = () => {
@@ -163,9 +165,21 @@ const Card: React.FC<CardProps> = ({ card }) => {
   }, [isEditing]);
 
   const handleInputBlur = () => {
+    if (!canEdit) return;
+    const previousTitle = card.title;
     setIsEditing(false);
     card.title = editedTitle;
-    updateCardMutation.mutate({ title: editedTitle });
+    updateCardMutation.mutate(
+      { title: editedTitle },
+      {
+        onError: (error) => {
+          card.title = previousTitle;
+          setEditedTitle(previousTitle);
+          toast.error(error?.message || "Failed to update card title");
+          getBoardQuery.refetch();
+        },
+      }
+    );
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -178,8 +192,19 @@ const Card: React.FC<CardProps> = ({ card }) => {
   const updateCardMutation = useUpdateCard(card._id);
 
   const setCardCompleted = (completed: boolean) => {
+    if (!canEdit) return;
+    const previousCompleted = Boolean(card.completed);
     card.completed = completed;
-    updateCardMutation.mutate({ completed });
+    updateCardMutation.mutate(
+      { completed },
+      {
+        onError: (error) => {
+          card.completed = previousCompleted;
+          toast.error(error?.message || "Failed to update card");
+          getBoardQuery.refetch();
+        },
+      }
+    );
   };
 
   const handleToggleCompleted = (
@@ -196,6 +221,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
   };
 
   const handleArchiveCard = (card: CardType) => {
+    if (!canEdit) return;
     archiveCardMutation.mutate({ cardId: card._id });
   };
 
@@ -209,6 +235,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
         style={dndKitCardStyles}
         {...attributes}
         {...listeners}
+        onClick={!canEdit ? handleOpenModal : undefined}
         sx={{
           cursor: openModal ? "default" : "pointer",
           boxShadow: "0 1px 1px rgba(0, 0, 0, 0.2)",
@@ -230,7 +257,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
           },
         }}
       >
-        {!isEditing && (
+        {canEdit && !isEditing && (
           <Tooltip title="Edit card">
             <Box
               className="edit-icon"
@@ -311,6 +338,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
             "&:last-child": { p: 1 },
           }}
         >
+          {canEdit && (
           <Box
             className="radio-icon"
             onPointerDown={(event) => event.stopPropagation()}
@@ -339,6 +367,7 @@ const Card: React.FC<CardProps> = ({ card }) => {
               />
             </Tooltip>
           </Box>
+          )}
 
           {isEditing ? (
             <input
@@ -372,15 +401,17 @@ const Card: React.FC<CardProps> = ({ card }) => {
             </Typography>
           )}
 
-          <CardMenu
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            onEditCard={handleEditCard}
-            onOpenCard={handleOpenModal}
-            onArchiveCard={handleArchiveCard}
-            card={card}
-          />
+          {canEdit && (
+            <CardMenu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              onEditCard={handleEditCard}
+              onOpenCard={handleOpenModal}
+              onArchiveCard={handleArchiveCard}
+              card={card}
+            />
+          )}
         </CardContent>
 
         {hasAnyActions && (
@@ -464,7 +495,12 @@ const Card: React.FC<CardProps> = ({ card }) => {
           </CardActions>
         )}
       </MuiCard>
-      <CardModal open={openModal} onClose={handleCloseModal} card={card} />
+      <CardModal
+        open={openModal}
+        onClose={handleCloseModal}
+        card={card}
+        canEdit={canEdit}
+      />
     </>
   );
 };

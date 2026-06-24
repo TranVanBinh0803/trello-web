@@ -19,6 +19,7 @@ import DeleteConfirmMenu from "./DeleteConfirmMenu";
 interface AttachmentItemProps extends AttachmentType {
   onUpdate: (updatedContent: string) => void;
   onDelete: (attachmentId: string) => void;
+  canEdit?: boolean;
 }
 
 const AttachmentItem: React.FC<AttachmentItemProps> = ({
@@ -29,6 +30,7 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
   updatedAt,
   onUpdate,
   onDelete,
+  canEdit = true,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -42,6 +44,7 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
   const [localFileName, setLocalFileName] = useState(fileName);
 
   const handleClick = (event: MouseEvent<SVGSVGElement>) => {
+    if (!canEdit) return;
     setAnchorEl(event.currentTarget as unknown as HTMLElement);
   };
 
@@ -149,6 +152,7 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
         <IconButton onClick={handleOpenFile} title="Open file">
           <OpenInNewIcon fontSize="small" />
         </IconButton>
+        {canEdit && (
         <IconButton>
           <MoreVertIcon
             sx={{ color: "text.primary", cursor: "pointer" }}
@@ -159,6 +163,7 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
             onClick={handleClick}
           />
         </IconButton>
+        )}
 
         <Menu
           id="basic-menu-attachment-dropdown"
@@ -186,9 +191,21 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
               <Box>Remove cover</Box>
             </ListItemText>
           </MenuItem>
-          <MenuItem onClick={handleOpenDeleteMenu}>
+          <MenuItem
+            onClick={handleOpenDeleteMenu}
+            sx={{
+              mx: 1,
+              my: 0.5,
+              borderRadius: 1,
+              bgcolor: "error.main",
+              color: "error.contrastText",
+              "&:hover": {
+                bgcolor: "error.dark",
+              },
+            }}
+          >
             <ListItemText>
-              <Box sx={{ color: "error.main" }}>Delete</Box>
+              <Box>Delete</Box>
             </ListItemText>
           </MenuItem>
         </Menu>

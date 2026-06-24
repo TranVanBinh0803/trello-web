@@ -20,8 +20,11 @@ const ActivityItem = ({ activity }: ActivityItemProps) => (
       <Typography variant="body2">
         <Typography component="span" variant="body2" fontWeight={700}>
           {activity.actorName}
-        </Typography>{" "}
-        {activity.message}
+        </Typography>
+        {" "}
+        <Typography component="span" variant="body2" fontWeight={400} fontSize={12}>
+          {activity.message}
+        </Typography>
       </Typography>
       <Typography variant="caption" color="text.secondary">
         {format(new Date(activity.createdAt), "MMM dd, yyyy, h:mm a")}

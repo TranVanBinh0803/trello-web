@@ -4,14 +4,17 @@ import { boardDataAtom } from "~/atoms/BoardAtom";
 import { useGetABoard } from "~/pages/Boards/api/useGetABoard";
 
 export const useBoardData = (boardId?: string) => {
-  const { data, isFetching } = useGetABoard(boardId);
+  const { data, error, isError, isFetching } = useGetABoard(boardId);
   const setBoardData = useSetAtom(boardDataAtom);
 
   useLayoutEffect(() => {
     if (data?.data) {
       setBoardData(data.data);
     }
-  }, [data, setBoardData]);
+    if (isError) {
+      setBoardData(null);
+    }
+  }, [data, isError, setBoardData]);
 
-  return { isFetching };
+  return { error, isError, isFetching };
 };

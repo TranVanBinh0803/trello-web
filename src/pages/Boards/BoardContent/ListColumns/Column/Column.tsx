@@ -30,7 +30,7 @@ import { useArchiveColumn } from "./api/useArchiveColumn";
 import { useAtomValue } from "jotai";
 import { manageModalAtom } from "~/atoms/ManageModalAtom";
 
-const Column: React.FC<ColumnProps> = ({ column }) => {
+const Column: React.FC<ColumnProps> = ({ column, canEdit = true }) => {
   const {
     attributes,
     listeners,
@@ -38,7 +38,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: column._id, data: { ...column } });
+  } = useSortable({ id: column._id, data: { ...column }, disabled: !canEdit });
 
   const dndKitColumnStyles = {
     transform: CSS.Translate.toString(transform),
@@ -97,7 +97,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
     archiveColumnMutation.mutate({ columnId: column._id });
   };
 
-  const dragListeners = manageModal ? {} : listeners;
+  const dragListeners = manageModal || !canEdit ? {} : listeners;
 
   return (
     <div ref={setNodeRef} style={dndKitColumnStyles} {...attributes}>
@@ -136,6 +136,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
             {column.title}
           </Typography>
 
+          {canEdit && (
           <Box>
             <Tooltip title="More options">
               <Box
@@ -171,22 +172,39 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
                 },
               }}
             >
-              <MenuItem>
+              <MenuItem
+                onClick={() => handleArchiveColumn(column)}
+                sx={{
+                  mx: 1,
+                  my: 0.5,
+                  borderRadius: 1,
+                  bgcolor: "error.main",
+                  color: "error.contrastText",
+                  "&:hover": {
+                    bgcolor: "error.dark",
+                  },
+                  "& .MuiListItemIcon-root": {
+                    color: "inherit",
+                  },
+                }}
+              >
                 <ListItemIcon>
                   <Cloud fontSize="small" />
                 </ListItemIcon>
-                <ListItemText onClick={() => handleArchiveColumn(column)}>
+                <ListItemText>
                   <Box>Archive this column</Box>
                 </ListItemText>
               </MenuItem>
             </Menu>
           </Box>
+          )}
         </Box>
 
         {/* List cards */}
-        <ListCards cards={orderedCards} />
+        <ListCards cards={orderedCards} canEdit={canEdit} />
 
         {/* Footer */}
+        {canEdit && (
         <Box sx={{ height: (theme) => theme.trello.columnFooterHeight, p: 2 }}>
           {!openNewCardForm ? (
             <Box
@@ -244,6 +262,7 @@ const Column: React.FC<ColumnProps> = ({ column }) => {
             </Box>
           )}
         </Box>
+        )}
       </Box>
     </div>
   );

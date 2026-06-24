@@ -14,6 +14,7 @@ interface CommentItemProps {
   updatedAt: string;
   onUpdate: (newContent: string) => void;
   onDelete: () => void;
+  canEdit?: boolean;
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
@@ -24,6 +25,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   updatedAt,
   onUpdate,
   onDelete,
+  canEdit = true,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(content);
@@ -109,14 +111,22 @@ const CommentItem: React.FC<CommentItemProps> = ({
                 dangerouslySetInnerHTML={{ __html: content }}
               />
             </Box>
+            {canEdit && (
             <Stack direction="row" spacing={2} mt={0.5}>
               <Button onClick={() => setIsEditing(true)} size="small">
                 Edit
               </Button>
-              <Button onClick={handleOpenMenu} size="small">
+              <Button
+                onClick={handleOpenMenu}
+                size="small"
+                variant="contained"
+                color="error"
+                sx={{ minHeight: 28, boxShadow: "none" }}
+              >
                 Delete
               </Button>
             </Stack>
+            )}
           </>
         )}
       </Box>

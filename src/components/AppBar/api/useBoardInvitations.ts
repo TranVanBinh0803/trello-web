@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
+import { getMyBoardsApiSpec } from "~/apis/services/board/Board";
 import {
   acceptBoardInvitation,
   acceptBoardInvitationApiSpec,
@@ -30,6 +31,11 @@ export const useAcceptBoardInvitation = () => {
     mutationFn: acceptBoardInvitation,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: boardInvitationsQueryKey });
+      await queryClient.invalidateQueries({ queryKey: [getMyBoardsApiSpec.name] });
+      await queryClient.refetchQueries({
+        queryKey: [getMyBoardsApiSpec.name],
+        type: "active",
+      });
       toast.success("Board invitation accepted");
     },
     onError: (error) => {

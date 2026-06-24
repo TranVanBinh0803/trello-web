@@ -13,7 +13,7 @@ import { useCreateColumn } from "./api/useCreateColumn";
 import { useAtomValue } from "jotai";
 import { boardDataAtom } from "~/atoms/BoardAtom";
 
-const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
+const ListColumns: React.FC<ListColumnsProps> = ({ columns, canEdit = true }) => {
   const board = useAtomValue(boardDataAtom);
   const [openNewColumnForm, setOpenNewColumnForm] = useState(false);
   const toggleOpenNewColumnForm = () => {
@@ -65,10 +65,10 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
         }}
       >
         {columns?.map((column) => (
-          <Column key={column._id} column={column} />
+          <Column key={column._id} column={column} canEdit={canEdit} />
         ))}
 
-        {!openNewColumnForm ? (
+        {canEdit && !openNewColumnForm ? (
           <Box
             sx={{
               minWidth: 250,
@@ -88,7 +88,7 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
               Add new column
             </Button>
           </Box>
-        ) : (
+        ) : canEdit ? (
           <Box
             sx={{
               minWidth: 250,
@@ -129,7 +129,7 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns }) => {
               />
             </Box>
           </Box>
-        )}
+        ) : null}
       </Box>
     </SortableContext>
   );

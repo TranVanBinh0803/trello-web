@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import {
   AddToDriveOutlined,
   DashboardRounded,
+  LogoutRounded,
   WorkspacePremium,
   PersonAdd,
 } from "@mui/icons-material";
@@ -26,6 +27,7 @@ import {
   Skeleton,
   TextField,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { useAtomValue } from "jotai";
 import { user } from "~/atoms/AuthAtoms";
@@ -33,6 +35,7 @@ import { boardDataAtom } from "~/atoms/BoardAtom";
 import { HelperUtils } from "~/untils/helpers";
 import { SchemaUtils } from "~/untils/schema";
 import { useInviteBoardMember } from "./api/useInviteBoardMember";
+import { useLeaveBoard } from "./api/useLeaveBoard";
 
 const MENU_STYLES = {
   color: "primary.main",
@@ -49,15 +52,21 @@ const BoardBar = () => {
   const board = useAtomValue(boardDataAtom);
   const currentUser = useAtomValue(user);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
   const [email, setEmail] = useState("");
 
   const inviteBoardMemberMutation = useInviteBoardMember(board?._id || "");
+  const leaveBoardMutation = useLeaveBoard(board?._id || "");
   const isPublic = board?.type === "public";
   const members = board?.members ?? [];
   const isBoardReady = Boolean(board);
   const ownerIds = board?.ownerIds ?? [];
+  const memberIds = board?.memberIds ?? [];
   const isCurrentUserOwner = ownerIds.some(
     (ownerId) => ownerId.toString() === currentUser?._id
+  );
+  const isCurrentUserMember = memberIds.some(
+    (memberId) => memberId.toString() === currentUser?._id
   );
   const trimmedEmail = email.trim();
   const isInviteEmailValid = SchemaUtils.validator.isValidEmail(trimmedEmail);
@@ -83,6 +92,19 @@ const BoardBar = () => {
         },
       }
     );
+  };
+
+  const handleCloseLeaveDialog = () => {
+    setLeaveOpen(false);
+  };
+
+  const handleConfirmLeaveBoard = () => {
+    if (!board?._id || isCurrentUserOwner) return;
+    leaveBoardMutation.mutate(undefined, {
+      onSuccess: () => {
+        setLeaveOpen(false);
+      },
+    });
   };
 
   return (
@@ -120,6 +142,14 @@ const BoardBar = () => {
                 label={`${isPublic ? "Public" : "Private"} Workspace`}
                 sx={{ ...MENU_STYLES, minWidth: 170 }}
               />
+              {!isCurrentUserMember && (
+                <Chip
+                  label="Read only"
+                  color="info"
+                  variant="outlined"
+                  sx={{ minWidth: 96 }}
+                />
+              )}
             </>
           ) : (
             <>
@@ -137,6 +167,29 @@ const BoardBar = () => {
           >
             Invite
           </Button>
+          <Tooltip
+            title={
+              isCurrentUserOwner
+                ? "Owners cannot leave their own board"
+                : !isCurrentUserMember
+                  ? "Only board members can leave"
+                : "Leave this board"
+            }
+          >
+            <Box component="span">
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<LogoutRounded />}
+                onClick={() => setLeaveOpen(true)}
+                disabled={
+                  !isBoardReady || isCurrentUserOwner || !isCurrentUserMember
+                }
+              >
+                Leave
+              </Button>
+            </Box>
+          </Tooltip>
           <Box sx={{ width: 144, display: "flex", justifyContent: "flex-end" }}>
             {isBoardReady ? (
               <AvatarGroup
@@ -271,6 +324,31 @@ const BoardBar = () => {
             </Button>
           </DialogActions>
         </Box>
+      </Dialog>
+
+      <Dialog
+        open={leaveOpen}
+        onClose={handleCloseLeaveDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Leave board?</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            You will lose access to this board until an owner invites you again.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseLeaveDialog}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleConfirmLeaveBoard}
+            disabled={leaveBoardMutation.isPending}
+          >
+            Leave board
+          </Button>
+        </DialogActions>
       </Dialog>
     </>
   );
