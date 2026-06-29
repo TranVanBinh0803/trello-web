@@ -10,6 +10,10 @@ import {
   Tooltip,
   Button,
   TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from "@mui/material";
 import {
   AddCard,
@@ -48,6 +52,7 @@ const Column: React.FC<ColumnProps> = ({ column, canEdit = true }) => {
   };
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const open = Boolean(anchorEl);
 
   const handleClick = (event: MouseEvent<SVGSVGElement>) => {
@@ -93,8 +98,24 @@ const Column: React.FC<ColumnProps> = ({ column, canEdit = true }) => {
 
   const archiveColumnMutation = useArchiveColumn(column.boardId);
 
-  const handleArchiveColumn = (column: ColumnType) => {
-    archiveColumnMutation.mutate({ columnId: column._id });
+  const handleOpenArchiveDialog = () => {
+    handleClose();
+    setArchiveOpen(true);
+  };
+
+  const handleCloseArchiveDialog = () => {
+    setArchiveOpen(false);
+  };
+
+  const handleConfirmArchiveColumn = (column: ColumnType) => {
+    archiveColumnMutation.mutate(
+      { columnId: column._id },
+      {
+        onSuccess: () => {
+          setArchiveOpen(false);
+        },
+      }
+    );
   };
 
   const dragListeners = manageModal || !canEdit ? {} : listeners;
@@ -173,7 +194,7 @@ const Column: React.FC<ColumnProps> = ({ column, canEdit = true }) => {
               }}
             >
               <MenuItem
-                onClick={() => handleArchiveColumn(column)}
+                onClick={handleOpenArchiveDialog}
                 sx={{
                   mx: 1,
                   my: 0.5,
@@ -264,6 +285,31 @@ const Column: React.FC<ColumnProps> = ({ column, canEdit = true }) => {
         </Box>
         )}
       </Box>
+      <Dialog
+        open={archiveOpen}
+        onClose={handleCloseArchiveDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Archive column?</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            This will move "{column.title}" and its cards to archived items. You
+            can restore it later.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseArchiveDialog}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => handleConfirmArchiveColumn(column)}
+            disabled={archiveColumnMutation.isPending}
+          >
+            Archive column
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

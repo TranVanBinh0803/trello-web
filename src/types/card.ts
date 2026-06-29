@@ -62,6 +62,10 @@ export interface CardType {
   activities?: ActivityType[];
   FE_PlaceholderCard?: boolean;
   sortable?: Object;
+  archivedAt?: number | null;
+  archivedBy?: string | null;
+  archiveType?: string | null;
+  _destroy?: boolean;
 };
 
 export type CardProps = {

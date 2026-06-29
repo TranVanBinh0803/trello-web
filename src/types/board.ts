@@ -15,6 +15,10 @@ export interface BoardType {
   members?: UserType[];
   columnOrderIds: string[];
   columns?: ColumnType[];
+  archivedAt?: number | null;
+  archivedBy?: string | null;
+  archiveType?: string | null;
+  _destroy?: boolean;
 };
 
 export type BoardBarProps = {

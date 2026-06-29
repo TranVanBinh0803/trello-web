@@ -6,9 +6,10 @@ export interface ColumnType {
   cards: CardType[];
   cardOrderIds: string[];
   boardId: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   _destroy: boolean;
+  archivedAt?: number | null;
+  archivedBy?: string | null;
+  archiveType?: string | null;
+  _destroy?: boolean;
 }
 
 export type ColumnProps = {

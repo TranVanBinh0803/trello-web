@@ -1,6 +1,8 @@
 import { restClient } from "~/apis/restClient";
 import { BoardInvitationType } from "~/types/boardInvitation";
 import { BoardType } from "~/types/board";
+import { CardType } from "~/types/card";
+import { ColumnType } from "~/types/column";
 import { ApiSpec, HttpMethod, RestResponse } from "~/types/common";
 
 export const getABoardApiSpec: ApiSpec = {
@@ -13,6 +15,18 @@ export const getMyBoardsApiSpec: ApiSpec = {
   name: "getMyBoards",
   method: HttpMethod.GET,
   uri: "/boards",
+};
+
+export const getArchivedBoardsApiSpec: ApiSpec = {
+  name: "getArchivedBoards",
+  method: HttpMethod.GET,
+  uri: "/boards/archived",
+};
+
+export const getArchivedBoardItemsApiSpec: ApiSpec = {
+  name: "getArchivedBoardItems",
+  method: HttpMethod.GET,
+  uri: "/boards/:id/archived-items",
 };
 
 export const dragColumnApiSpec: ApiSpec = {
@@ -39,10 +53,28 @@ export const leaveBoardApiSpec: ApiSpec = {
   uri: "/boards/:id/members/me",
 };
 
-export const deleteBoardApiSpec: ApiSpec = {
-  name: "deleteBoard",
+export const archiveBoardApiSpec: ApiSpec = {
+  name: "archiveBoard",
   method: HttpMethod.DELETE,
-  uri: "/boards/:id/delete",
+  uri: "/boards/:id/archive",
+};
+
+export const restoreBoardApiSpec: ApiSpec = {
+  name: "restoreBoard",
+  method: HttpMethod.PATCH,
+  uri: "/boards/:id/restore",
+};
+
+export const restoreColumnApiSpec: ApiSpec = {
+  name: "restoreColumn",
+  method: HttpMethod.PATCH,
+  uri: "/boards/:id/columns/:columnId/restore",
+};
+
+export const createPrivateUpgradePaymentApiSpec: ApiSpec = {
+  name: "createPrivateUpgradePayment",
+  method: HttpMethod.POST,
+  uri: "/boards/:id/private-upgrade-payment",
 };
 
 export type dragColumnRequest = {
@@ -57,6 +89,17 @@ export interface InviteBoardMemberRequest {
   email: string;
 }
 
+export interface ArchivedBoardItemsResponse {
+  columns: ColumnType[];
+  cards: CardType[];
+}
+
+export interface PrivateUpgradePaymentResponse {
+  amount: number;
+  paymentUrl: string;
+  txnRef: string;
+}
+
 export const getABoard = (boardId: string) =>
   restClient
     .url(getABoardApiSpec.uri.replace(':id', boardId))
@@ -68,6 +111,18 @@ export const getMyBoards = () =>
     .url(getMyBoardsApiSpec.uri)
     .get()
     .json<RestResponse<BoardType[]>>();
+
+export const getArchivedBoards = () =>
+  restClient
+    .url(getArchivedBoardsApiSpec.uri)
+    .get()
+    .json<RestResponse<BoardType[]>>();
+
+export const getArchivedBoardItems = (boardId: string) =>
+  restClient
+    .url(getArchivedBoardItemsApiSpec.uri.replace(":id", boardId))
+    .get()
+    .json<RestResponse<ArchivedBoardItemsResponse>>();
 
 export const dragColumn = (boardId: string, request: dragColumnRequest) =>
   restClient
@@ -99,11 +154,33 @@ export const leaveBoard = (boardId: string) =>
     .delete()
     .json<RestResponse<BoardType>>();
 
-export const deleteBoard = (boardId: string) =>
+export const archiveBoard = (boardId: string) =>
   restClient
-    .url(deleteBoardApiSpec.uri.replace(":id", boardId))
+    .url(archiveBoardApiSpec.uri.replace(":id", boardId))
     .delete()
     .json<RestResponse<BoardType>>();
+
+export const restoreBoard = (boardId: string) =>
+  restClient
+    .url(restoreBoardApiSpec.uri.replace(":id", boardId))
+    .patch()
+    .json<RestResponse<BoardType>>();
+
+export const restoreColumn = (boardId: string, columnId: string) =>
+  restClient
+    .url(
+      restoreColumnApiSpec.uri
+        .replace(":id", boardId)
+        .replace(":columnId", columnId)
+    )
+    .patch()
+    .json<RestResponse<ColumnType>>();
+
+export const createPrivateUpgradePayment = (boardId: string) =>
+  restClient
+    .url(createPrivateUpgradePaymentApiSpec.uri.replace(":id", boardId))
+    .post()
+    .json<RestResponse<PrivateUpgradePaymentResponse>>();
 
 export const importBoardApiSpec: ApiSpec = {
   name: "importBoard",

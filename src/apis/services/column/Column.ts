@@ -22,6 +22,12 @@ export const archiveCardApiSpec: ApiSpec = {
   uri: "/columns/:id",
 };
 
+export const restoreCardApiSpec: ApiSpec = {
+  name: "restoreCard",
+  method: HttpMethod.PATCH,
+  uri: "/columns/:id/cards/:cardId/restore",
+};
+
 export const dragCardBetweenColumnApiSpec: ApiSpec = {
   name: "dragCardBetweenColumn",
   method: HttpMethod.PUT,
@@ -75,4 +81,14 @@ export const archiveCard = (columnId: string, request: archiveCardRequest) =>
     .url(archiveCardApiSpec.uri.replace(":id", columnId))
     .json(request)
     .delete()
+    .json<RestResponse<ColumnType>>();
+
+export const restoreCard = (columnId: string, cardId: string) =>
+  restClient
+    .url(
+      restoreCardApiSpec.uri
+        .replace(":id", columnId)
+        .replace(":cardId", cardId)
+    )
+    .patch()
     .json<RestResponse<ColumnType>>();

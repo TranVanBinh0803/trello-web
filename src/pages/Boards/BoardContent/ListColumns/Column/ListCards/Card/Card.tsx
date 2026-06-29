@@ -6,8 +6,13 @@ import {
   CardMedia,
   Tooltip,
   Box,
+  Button,
   Checkbox,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   LinearProgress,
 } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material";
@@ -81,12 +86,13 @@ const completedRadioSx: SxProps<Theme> = (theme) => ({
 });
 
 const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
+  const [localCard, setLocalCard] = useState<CardType>(card);
   const getBoardQuery = useGetABoard(card.boardId);
-  const hasDescription = Boolean(card?.description);
-  const hasComments = Boolean(card?.comments?.length);
-  const hasAttachments = Boolean(card?.attachments?.length);
-  const hasDates = Boolean(card.startDate || card.dueDate);
-  const checklistItems = (card.checklists ?? []).flatMap(
+  const hasDescription = Boolean(localCard?.description);
+  const hasComments = Boolean(localCard?.comments?.length);
+  const hasAttachments = Boolean(localCard?.attachments?.length);
+  const hasDates = Boolean(localCard.startDate || localCard.dueDate);
+  const checklistItems = (localCard.checklists ?? []).flatMap(
     (checklist) => checklist.items
   );
   const completedChecklistItems = checklistItems.filter(
@@ -136,8 +142,9 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
   };
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(card.title);
+  const [editedTitle, setEditedTitle] = useState(localCard.title);
   const inputRef = useRef<HTMLInputElement>(null);
   const open = Boolean(anchorEl);
 
@@ -166,14 +173,17 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
 
   const handleInputBlur = () => {
     if (!canEdit) return;
-    const previousTitle = card.title;
+    const previousTitle = localCard.title;
     setIsEditing(false);
-    card.title = editedTitle;
+    setLocalCard((prev) => ({ ...prev, title: editedTitle }));
     updateCardMutation.mutate(
       { title: editedTitle },
       {
+        onSuccess: (response) => {
+          setLocalCard(response.data);
+        },
         onError: (error) => {
-          card.title = previousTitle;
+          setLocalCard((prev) => ({ ...prev, title: previousTitle }));
           setEditedTitle(previousTitle);
           toast.error(error?.message || "Failed to update card title");
           getBoardQuery.refetch();
@@ -193,13 +203,16 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
 
   const setCardCompleted = (completed: boolean) => {
     if (!canEdit) return;
-    const previousCompleted = Boolean(card.completed);
-    card.completed = completed;
+    const previousCompleted = Boolean(localCard.completed);
+    setLocalCard((prev) => ({ ...prev, completed }));
     updateCardMutation.mutate(
       { completed },
       {
+        onSuccess: (response) => {
+          setLocalCard(response.data);
+        },
         onError: (error) => {
-          card.completed = previousCompleted;
+          setLocalCard((prev) => ({ ...prev, completed: previousCompleted }));
           toast.error(error?.message || "Failed to update card");
           getBoardQuery.refetch();
         },
@@ -217,16 +230,36 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
   const handleRadioClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    setCardCompleted(!Boolean(card.completed));
+    setCardCompleted(!Boolean(localCard.completed));
   };
 
-  const handleArchiveCard = (card: CardType) => {
+  const handleOpenArchiveDialog = () => {
+    setArchiveOpen(true);
+  };
+
+  const handleCloseArchiveDialog = () => {
+    setArchiveOpen(false);
+  };
+
+  const handleConfirmArchiveCard = (card: CardType) => {
     if (!canEdit) return;
-    archiveCardMutation.mutate({ cardId: card._id });
+    archiveCardMutation.mutate(
+      { cardId: card._id },
+      {
+        onSuccess: () => {
+          setArchiveOpen(false);
+        },
+      }
+    );
   };
 
-  const isCoverColor = card?.cover?.startsWith("#");
-  const hasCover = Boolean(card?.cover && card?.cover !== "");
+  const isCoverColor = localCard?.cover?.startsWith("#");
+  const hasCover = Boolean(localCard?.cover && localCard?.cover !== "");
+
+  useEffect(() => {
+    setLocalCard(card);
+    setEditedTitle(card.title);
+  }, [card]);
 
   return (
     <>
@@ -240,10 +273,10 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
           cursor: openModal ? "default" : "pointer",
           boxShadow: "0 1px 1px rgba(0, 0, 0, 0.2)",
           overflow: "unset",
-          opacity: card.FE_PlaceholderCard ? "0" : "1",
-          minWidth: card.FE_PlaceholderCard ? "280px" : "unset",
-          pointerEvents: card.FE_PlaceholderCard ? "none" : "unset",
-          position: card.FE_PlaceholderCard ? "fixed" : "relative",
+          opacity: localCard.FE_PlaceholderCard ? "0" : "1",
+          minWidth: localCard.FE_PlaceholderCard ? "280px" : "unset",
+          pointerEvents: localCard.FE_PlaceholderCard ? "none" : "unset",
+          position: localCard.FE_PlaceholderCard ? "fixed" : "relative",
           "&:hover .edit-icon": {
             opacity: 1,
             transform: "scale(1)",
@@ -302,20 +335,20 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
               <Box
                 sx={{
                   height: 36,
-                  backgroundColor: card.cover,
+                  backgroundColor: localCard.cover,
                   width: "100%",
                   borderRadius: 1,
                 }}
               />
             ) : (
-              <CardMedia sx={{ height: 140 }} image={card.cover} />
+              <CardMedia sx={{ height: 140 }} image={localCard.cover} />
             )}
           </>
         )}
 
-        {Boolean(card.labels?.length) && (
+        {Boolean(localCard.labels?.length) && (
           <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", px: 1, pt: 1 }}>
-            {card.labels?.map((label) => (
+            {localCard.labels?.map((label) => (
               <Box
                 key={label._id}
                 sx={{
@@ -356,7 +389,7 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
             <Tooltip title="Mark complete">
               <Checkbox
                 size="small"
-                checked={Boolean(card.completed)}
+                checked={Boolean(localCard.completed)}
                 onChange={handleToggleCompleted}
                 onPointerDown={(event) => event.stopPropagation()}
                 onMouseDown={(event) => event.stopPropagation()}
@@ -397,7 +430,7 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
                 transition: "transform 0.3s ease",
               }}
             >
-              {card?.title}
+              {localCard?.title}
             </Typography>
           )}
 
@@ -408,8 +441,8 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
               onClose={handleClose}
               onEditCard={handleEditCard}
               onOpenCard={handleOpenModal}
-              onArchiveCard={handleArchiveCard}
-              card={card}
+              onArchiveCard={handleOpenArchiveDialog}
+              card={localCard}
             />
           )}
         </CardContent>
@@ -433,7 +466,7 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
                 >
                   <MapsUgcRoundedIcon sx={{ width: 16, height: 16 }} />
                   <Typography variant="body2">
-                    {card.comments?.length}
+                    {localCard.comments?.length}
                   </Typography>
                 </Box>
               </Tooltip>
@@ -450,7 +483,7 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
                 >
                   <Attachment fontSize="small" />
                   <Typography variant="body2">
-                    {card.attachments?.length}
+                    {localCard.attachments?.length}
                   </Typography>
                 </Box>
               </Tooltip>
@@ -459,9 +492,9 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
               <Tooltip title="dates">
                 <Chip
                   icon={<Schedule sx={{ width: 14, height: 14 }} />}
-                  label={dayjs(card.dueDate).format("DD/MM/YYYY") || dayjs(card.startDate).format("DD/MM/YYYY")}
+                  label={dayjs(localCard.dueDate).format("DD/MM/YYYY") || dayjs(localCard.startDate).format("DD/MM/YYYY")}
                   size="small"
-                  color={card.completed ? "success" : "default"}
+                  color={localCard.completed ? "success" : "default"}
                 />
               </Tooltip>
             )}
@@ -498,9 +531,34 @@ const Card: React.FC<CardProps> = ({ card, canEdit = true }) => {
       <CardModal
         open={openModal}
         onClose={handleCloseModal}
-        card={card}
+        card={localCard}
         canEdit={canEdit}
       />
+      <Dialog
+        open={archiveOpen}
+        onClose={handleCloseArchiveDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Archive card?</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            This will move "{localCard.title}" to archived items. You can
+            restore it later.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseArchiveDialog}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => handleConfirmArchiveCard(localCard)}
+            disabled={archiveCardMutation.isPending}
+          >
+            Archive card
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

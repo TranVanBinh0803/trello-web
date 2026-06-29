@@ -14,7 +14,6 @@ import {
 import { CardType } from "~/types/card";
 import CloseIcon from "@mui/icons-material/Close";
 import UploadIcon from "@mui/icons-material/Upload";
-import { toast } from "react-toastify";
 import { useAddAttachment } from "../api/useAddAttachment";
 
 interface CoverMenuProps {
@@ -66,9 +65,6 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
         onSuccess: (response) => {
           setLocalCard(response.data);
           onSetLocalCard(response.data);
-        },
-        onError: () => {
-          toast.error("Upload failed:");
         },
       }
     );

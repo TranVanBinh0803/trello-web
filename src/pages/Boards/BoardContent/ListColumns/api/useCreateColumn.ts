@@ -1,22 +1,36 @@
-import { useMutation } from "@tanstack/react-query";
-import { useSetAtom } from "jotai";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAtom } from "jotai";
 import { toast } from "react-toastify";
 import {
   createColumn,
+  createColumnApiSpec,
   createColumnRequest,
 } from "~/apis/services/column/Column";
 import { boardDataAtom } from "~/atoms/BoardAtom";
+import { BoardType } from "~/types/board";
 import { ColumnType } from "~/types/column";
 import { RestError, RestResponse } from "~/types/common";
+import {
+  getMutationErrorMessage,
+  invalidateBoardQueries,
+} from "~/untils/mutations";
+
+interface CreateColumnContext {
+  previousBoard: BoardType | null;
+  tempColumn: ColumnType;
+}
 
 export const useCreateColumn = () => {
-  const setBoardData = useSetAtom(boardDataAtom);
+  const [boardData, setBoardData] = useAtom(boardDataAtom);
+  const queryClient = useQueryClient();
+
   return useMutation<
     RestResponse<ColumnType>,
     RestError,
     createColumnRequest,
-    ColumnType
+    CreateColumnContext
   >({
+    mutationKey: [createColumnApiSpec.name],
     mutationFn: createColumn,
     onMutate: async (newColumnData) => {
       const tempColumn: ColumnType = {
@@ -35,19 +49,21 @@ export const useCreateColumn = () => {
           columnOrderIds: [...prevBoard.columnOrderIds, tempColumn._id],
         };
       });
-      return tempColumn;
+      return {
+        previousBoard: boardData,
+        tempColumn,
+      };
     },
     onSuccess: (response, variables, context) => {
       const actualColumn = response.data;
-      const tempColumn = context as ColumnType;
 
       setBoardData((prevBoard) => {
         if (!prevBoard) return prevBoard;
         const updatedColumns = (prevBoard.columns || []).map((col) =>
-          col._id === tempColumn._id ? actualColumn : col
+          col._id === context.tempColumn._id ? actualColumn : col
         );
         const updatedColumnOrderIds = prevBoard.columnOrderIds.map((id) =>
-          id === context?._id ? actualColumn._id : id
+          id === context.tempColumn._id ? actualColumn._id : id
         );
         return {
           ...prevBoard,
@@ -56,10 +72,14 @@ export const useCreateColumn = () => {
         };
       });
     },
-    onError: (error) => {
-      toast.error(
-        error?.message || "Failed to create column. Please try again."
-      );
+    onError: (error, variables, context) => {
+      if (context?.previousBoard) {
+        setBoardData(context.previousBoard);
+      }
+      toast.error(getMutationErrorMessage(error, "Failed to create column."));
+    },
+    onSettled: (response, error, variables) => {
+      invalidateBoardQueries(queryClient, variables.boardId);
     },
   });
 };

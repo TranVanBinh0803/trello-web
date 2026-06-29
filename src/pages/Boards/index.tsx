@@ -16,7 +16,8 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import ArchiveRoundedIcon from "@mui/icons-material/ArchiveRounded";
+import RestoreRoundedIcon from "@mui/icons-material/RestoreRounded";
 import { useAtomValue } from "jotai";
 import { useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,40 +25,54 @@ import { user } from "~/atoms/AuthAtoms";
 import AppBar from "~/components/AppBar/AppBar";
 import { BoardType } from "~/types/board";
 import { useGetMyBoards } from "./api/useGetMyBoards";
-import { useDeleteBoard } from "./api/useDeleteBoard";
+import { useArchiveBoard } from "./api/useArchiveBoard";
+import { useGetArchivedBoards } from "./api/useGetArchivedBoards";
+import { useRestoreBoard } from "./api/useRestoreBoard";
 
 export default function BoardsPage() {
   const navigate = useNavigate();
   const { data, isFetching } = useGetMyBoards();
+  const archivedBoardsQuery = useGetArchivedBoards();
   const currentUser = useAtomValue(user);
-  const deleteBoardMutation = useDeleteBoard();
-  const [deleteTargetBoard, setDeleteTargetBoard] = useState<BoardType | null>(
+  const archiveBoardMutation = useArchiveBoard();
+  const restoreBoardMutation = useRestoreBoard();
+  const [archiveTargetBoard, setArchiveTargetBoard] = useState<BoardType | null>(
     null
   );
   const boards = data?.data ?? [];
+  const archivedBoards = archivedBoardsQuery.data?.data ?? [];
   const isOwner = (board: BoardType) =>
     board.ownerIds?.some((ownerId) => ownerId.toString() === currentUser?._id);
 
-  const handleOpenDeleteDialog = (
+  const handleOpenArchiveDialog = (
     event: MouseEvent<HTMLButtonElement>,
     board: BoardType
   ) => {
     event.preventDefault();
     event.stopPropagation();
-    setDeleteTargetBoard(board);
+    setArchiveTargetBoard(board);
   };
 
-  const handleCloseDeleteDialog = () => {
-    setDeleteTargetBoard(null);
+  const handleCloseArchiveDialog = () => {
+    setArchiveTargetBoard(null);
   };
 
-  const handleConfirmDeleteBoard = () => {
-    if (!deleteTargetBoard) return;
-    deleteBoardMutation.mutate(deleteTargetBoard._id, {
+  const handleConfirmArchiveBoard = () => {
+    if (!archiveTargetBoard) return;
+    archiveBoardMutation.mutate(archiveTargetBoard._id, {
       onSuccess: () => {
-        setDeleteTargetBoard(null);
+        setArchiveTargetBoard(null);
       },
     });
+  };
+
+  const handleRestoreBoard = (
+    event: MouseEvent<HTMLButtonElement>,
+    board: BoardType
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+    restoreBoardMutation.mutate(board._id);
   };
 
   return (
@@ -100,11 +115,11 @@ export default function BoardsPage() {
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={board._id}>
                 <Card sx={{ height: 150, position: "relative" }}>
                   {isOwner(board) && (
-                    <Tooltip title="Delete board">
+                    <Tooltip title="Archive board">
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={(event) => handleOpenDeleteDialog(event, board)}
+                        onClick={(event) => handleOpenArchiveDialog(event, board)}
                         sx={{
                           position: "absolute",
                           top: 8,
@@ -117,7 +132,7 @@ export default function BoardsPage() {
                           },
                         }}
                       >
-                        <DeleteRoundedIcon fontSize="small" />
+                        <ArchiveRoundedIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
                   )}
@@ -163,29 +178,110 @@ export default function BoardsPage() {
             ))}
           </Grid>
         )}
+
+        <Box sx={{ mt: 5 }}>
+          <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+            Archived boards
+          </Typography>
+          {archivedBoardsQuery.isFetching ? (
+            <Grid container spacing={2}>
+              {["archived-board-skeleton-1", "archived-board-skeleton-2"].map(
+                (key) => (
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={key}>
+                    <Skeleton variant="rounded" height={120} />
+                  </Grid>
+                )
+              )}
+            </Grid>
+          ) : archivedBoards.length === 0 ? (
+            <Typography color="text.secondary">
+              No archived boards.
+            </Typography>
+          ) : (
+            <Grid container spacing={2}>
+              {archivedBoards.map((board) => (
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={board._id}>
+                  <Card sx={{ height: 132, position: "relative", opacity: 0.86 }}>
+                    {isOwner(board) && (
+                      <Tooltip title="Restore board">
+                        <IconButton
+                          size="small"
+                          color="success"
+                          onClick={(event) => handleRestoreBoard(event, board)}
+                          disabled={restoreBoardMutation.isPending}
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            zIndex: 2,
+                            bgcolor: "success.main",
+                            color: "success.contrastText",
+                            "&:hover": {
+                              bgcolor: "success.dark",
+                            },
+                          }}
+                        >
+                          <RestoreRoundedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    <CardContent
+                      sx={{
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        pr: 7,
+                      }}
+                    >
+                      <Box>
+                        <Typography fontWeight={700}>{board.title}</Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            mt: 0.5,
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {board.description}
+                        </Typography>
+                      </Box>
+                      <Chip size="small" label="Archived" color="warning" />
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Box>
       </Box>
 
       <Dialog
-        open={Boolean(deleteTargetBoard)}
-        onClose={handleCloseDeleteDialog}
+        open={Boolean(archiveTargetBoard)}
+        onClose={handleCloseArchiveDialog}
         fullWidth
         maxWidth="xs"
       >
-        <DialogTitle>Delete board?</DialogTitle>
+        <DialogTitle>Archive board?</DialogTitle>
         <DialogContent>
           <Typography color="text.secondary">
-            This will remove "{deleteTargetBoard?.title}" from your boards.
+            This will move "{archiveTargetBoard?.title}" to archived boards. You
+            can restore it later.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button onClick={handleCloseArchiveDialog}>Cancel</Button>
           <Button
             variant="contained"
             color="error"
-            onClick={handleConfirmDeleteBoard}
-            disabled={deleteBoardMutation.isPending}
+            onClick={handleConfirmArchiveBoard}
+            disabled={archiveBoardMutation.isPending}
           >
-            Delete board
+            Archive board
           </Button>
         </DialogActions>
       </Dialog>

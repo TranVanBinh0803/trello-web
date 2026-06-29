@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from "react";
 import {
-  AddToDriveOutlined,
   DashboardRounded,
+  Inventory2Rounded,
+  LockRounded,
   LogoutRounded,
   WorkspacePremium,
   PersonAdd,
+  RestoreRounded,
 } from "@mui/icons-material";
 import CloseIcon from "@mui/icons-material/Close";
 import PublicIcon from "@mui/icons-material/Public";
@@ -36,6 +38,10 @@ import { HelperUtils } from "~/untils/helpers";
 import { SchemaUtils } from "~/untils/schema";
 import { useInviteBoardMember } from "./api/useInviteBoardMember";
 import { useLeaveBoard } from "./api/useLeaveBoard";
+import { useGetArchivedBoardItems } from "./api/useGetArchivedBoardItems";
+import { useCreatePrivateUpgradePayment } from "./api/useCreatePrivateUpgradePayment";
+import { useRestoreColumn } from "../BoardContent/ListColumns/Column/api/useRestoreColumn";
+import { useRestoreCard } from "../BoardContent/ListColumns/Column/ListCards/Card/api/useRestoreCard";
 
 const MENU_STYLES = {
   color: "primary.main",
@@ -53,10 +59,15 @@ const BoardBar = () => {
   const currentUser = useAtomValue(user);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const [archivedOpen, setArchivedOpen] = useState(false);
+  const [privateUpgradeOpen, setPrivateUpgradeOpen] = useState(false);
   const [email, setEmail] = useState("");
 
   const inviteBoardMemberMutation = useInviteBoardMember(board?._id || "");
   const leaveBoardMutation = useLeaveBoard(board?._id || "");
+  const privateUpgradePaymentMutation = useCreatePrivateUpgradePayment();
+  const restoreColumnMutation = useRestoreColumn(board?._id || "");
+  const restoreCardMutation = useRestoreCard({ boardId: board?._id });
   const isPublic = board?.type === "public";
   const members = board?.members ?? [];
   const isBoardReady = Boolean(board);
@@ -68,9 +79,16 @@ const BoardBar = () => {
   const isCurrentUserMember = memberIds.some(
     (memberId) => memberId.toString() === currentUser?._id
   );
+  const archivedItemsQuery = useGetArchivedBoardItems(
+    board?._id,
+    archivedOpen && isBoardReady && isCurrentUserMember
+  );
   const trimmedEmail = email.trim();
   const isInviteEmailValid = SchemaUtils.validator.isValidEmail(trimmedEmail);
   const shouldShowEmailError = Boolean(trimmedEmail) && !isInviteEmailValid;
+  const archivedColumns = archivedItemsQuery.data?.data.columns ?? [];
+  const archivedCards = archivedItemsQuery.data?.data.cards ?? [];
+  const archivedItemCount = archivedColumns.length + archivedCards.length;
 
   const isOwner = (memberId: string) =>
     ownerIds.some((ownerId) => ownerId.toString() === memberId);
@@ -105,6 +123,38 @@ const BoardBar = () => {
         setLeaveOpen(false);
       },
     });
+  };
+
+  const handleCloseArchivedDialog = () => {
+    setArchivedOpen(false);
+  };
+
+  const handleClosePrivateUpgradeDialog = () => {
+    setPrivateUpgradeOpen(false);
+  };
+
+  const handleConfirmPrivateUpgrade = () => {
+    if (!board?._id || !isCurrentUserOwner || !isPublic) return;
+    privateUpgradePaymentMutation.mutate(board._id);
+  };
+
+  const handleRestoreColumn = (columnId: string) => {
+    restoreColumnMutation.mutate(columnId, {
+      onSuccess: () => {
+        archivedItemsQuery.refetch();
+      },
+    });
+  };
+
+  const handleRestoreCard = (columnId: string, cardId: string) => {
+    restoreCardMutation.mutate(
+      { columnId, cardId },
+      {
+        onSuccess: () => {
+          archivedItemsQuery.refetch();
+        },
+      }
+    );
   };
 
   return (
@@ -142,6 +192,17 @@ const BoardBar = () => {
                 label={`${isPublic ? "Public" : "Private"} Workspace`}
                 sx={{ ...MENU_STYLES, minWidth: 170 }}
               />
+              {isPublic && isCurrentUserOwner && (
+                <Button
+                  variant="contained"
+                  color="success"
+                  size="small"
+                  startIcon={<LockRounded />}
+                  onClick={() => setPrivateUpgradeOpen(true)}
+                >
+                  Make private
+                </Button>
+              )}
               {!isCurrentUserMember && (
                 <Chip
                   label="Read only"
@@ -166,6 +227,14 @@ const BoardBar = () => {
             disabled={!isBoardReady || !isCurrentUserOwner}
           >
             Invite
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Inventory2Rounded />}
+            onClick={() => setArchivedOpen(true)}
+            disabled={!isBoardReady || !isCurrentUserMember}
+          >
+            Archived
           </Button>
           <Tooltip
             title={
@@ -348,6 +417,147 @@ const BoardBar = () => {
           >
             Leave board
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={privateUpgradeOpen}
+        onClose={handleClosePrivateUpgradeDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Make board private?</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary">
+            Public boards are free. To switch this board to private, you will be
+            redirected to VNPAY sandbox to complete a test payment.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePrivateUpgradeDialog}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleConfirmPrivateUpgrade}
+            disabled={privateUpgradePaymentMutation.isPending}
+          >
+            Continue to VNPAY
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={archivedOpen}
+        onClose={handleCloseArchivedDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Archived items</DialogTitle>
+        <DialogContent>
+          {archivedItemsQuery.isFetching ? (
+            <Box sx={{ display: "grid", gap: 1.5 }}>
+              {["archived-item-skeleton-1", "archived-item-skeleton-2"].map(
+                (key) => (
+                  <Skeleton variant="rounded" height={56} key={key} />
+                )
+              )}
+            </Box>
+          ) : archivedItemCount === 0 ? (
+            <Box
+              sx={{
+                minHeight: 160,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1px dashed",
+                borderColor: "divider",
+                borderRadius: 1,
+              }}
+            >
+              <Typography color="text.secondary">No archived items.</Typography>
+            </Box>
+          ) : (
+            <Box sx={{ display: "grid", gap: 2 }}>
+              <Box>
+                <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+                  Columns
+                </Typography>
+                {archivedColumns.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    No archived columns.
+                  </Typography>
+                ) : (
+                  <List dense disablePadding>
+                    {archivedColumns.map((column) => (
+                      <ListItem
+                        key={column._id}
+                        disableGutters
+                        secondaryAction={
+                          <Button
+                            size="small"
+                            color="success"
+                            startIcon={<RestoreRounded />}
+                            onClick={() => handleRestoreColumn(column._id)}
+                            disabled={restoreColumnMutation.isPending}
+                          >
+                            Restore
+                          </Button>
+                        }
+                      >
+                        <ListItemText
+                          primary={column.title}
+                          secondary={`${column.cardOrderIds.length} cards`}
+                          primaryTypographyProps={{ fontWeight: 600 }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+                  Cards
+                </Typography>
+                {archivedCards.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    No archived cards.
+                  </Typography>
+                ) : (
+                  <List dense disablePadding>
+                    {archivedCards.map((card) => (
+                      <ListItem
+                        key={card._id}
+                        disableGutters
+                        secondaryAction={
+                          <Button
+                            size="small"
+                            color="success"
+                            startIcon={<RestoreRounded />}
+                            onClick={() =>
+                              handleRestoreCard(card.columnId, card._id)
+                            }
+                            disabled={restoreCardMutation.isPending}
+                          >
+                            Restore
+                          </Button>
+                        }
+                      >
+                        <ListItemText
+                          primary={card.title || "Untitled card"}
+                          secondary="Archived card"
+                          primaryTypographyProps={{ fontWeight: 600 }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseArchivedDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </>

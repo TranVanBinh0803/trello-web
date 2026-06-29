@@ -3,11 +3,31 @@ import BoardBar from "./BoardBar/BoardBar";
 import BoardContent from "./BoardContent/BoardContent";
 import AppBar from "~/components/AppBar/AppBar";
 import { useBoardData } from "~/hooks/board/useBoardData";
-import { useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Board: React.FC = () => {
   const { boardId } = useParams<{ boardId: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { error, isError, isFetching } = useBoardData(boardId);
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    if (!paymentStatus) return;
+
+    if (paymentStatus === "success") {
+      toast.success("Payment successful. This board is now private.");
+    }
+    if (paymentStatus === "failed") {
+      toast.error("Payment was not completed.");
+    }
+    if (paymentStatus === "invalid") {
+      toast.error("Payment verification failed.");
+    }
+
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   if (!boardId) {
     return (
