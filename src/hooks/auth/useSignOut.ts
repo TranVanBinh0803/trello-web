@@ -15,7 +15,7 @@ export function useSignOut() {
 
   const logoutApi = useMutation<RestResponse<null>, RestError, void>({
     mutationFn: logout,
-    onError: () => toast.error("Không lưu được nhật trình đăng xuất"),
+    onError: () => toast.error("Failed to save sign-out activity"),
   });
 
   return async () => {

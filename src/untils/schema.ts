@@ -1,7 +1,7 @@
 export namespace SchemaUtils {
   export const validator = {
     // Ref: https://melvingeorge.me/blog/remove-all-html-tags-from-string-javascript
-    isNonEmptyHtml: (str: string) => !!str.replace(/(<([^>]+)>)/gi, '').trim(),
+    isNonEmptyHtml: (str: string) => !!str.replace(/(<([^>]+)>)/gi, "").trim(),
     isNonEmptyString: (str: string) => !!str.trim(),
     isValidEmail: (str: string) =>
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str.trim()),
@@ -18,10 +18,10 @@ export namespace SchemaUtils {
   };
 
   export const message = {
-    nonempty: 'Vui lòng không bỏ trống',
-    invalidEmail: 'Email không hợp lệ',
-    invalidLink: 'Liên kết không hợp lệ',
-    invalidNumber: 'Vui lòng nhập giá trị số',
-    invalidPhone: 'Số điện thoại không hợp lệ',
+    nonempty: "This field is required",
+    invalidEmail: "Invalid email",
+    invalidLink: "Invalid link",
+    invalidNumber: "Please enter a numeric value",
+    invalidPhone: "Invalid phone number",
   };
 }

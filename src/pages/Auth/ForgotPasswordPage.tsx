@@ -1,6 +1,14 @@
 import { useState } from "react";
 
-import { Box, Button, Link, Stack, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Link,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -70,6 +78,8 @@ export default function ForgotPasswordPage() {
     toast.success("Password reset OTP sent");
   };
 
+  const isSendingOtp = isSubmitting || forgotPasswordMutation.isPending;
+
   return (
     <PageContainer>
       <Card>
@@ -92,14 +102,20 @@ export default function ForgotPasswordPage() {
             {...register("email")}
             error={!!errors.email}
             helperText={errors.email?.message}
+            disabled={isSendingOtp}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            disabled={isSubmitting || forgotPasswordMutation.isPending}
+            disabled={isSendingOtp}
+            startIcon={
+              isSendingOtp ? (
+                <CircularProgress color="inherit" size={18} />
+              ) : undefined
+            }
           >
-            Send OTP
+            {isSendingOtp ? "Sending OTP..." : "Send OTP"}
           </Button>
         </Box>
 
@@ -137,6 +153,11 @@ export default function ForgotPasswordPage() {
           component="button"
           variant="body2"
           onClick={() => navigate("/login")}
+          disabled={isSendingOtp}
+          sx={{
+            pointerEvents: isSendingOtp ? "none" : "auto",
+            opacity: isSendingOtp ? 0.6 : 1,
+          }}
         >
           Back to sign in
         </Link>

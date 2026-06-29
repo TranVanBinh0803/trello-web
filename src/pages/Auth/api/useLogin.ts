@@ -6,6 +6,6 @@ import { RestError, RestResponse } from "~/types/common";
 export const useLogin = () =>
   useMutation<RestResponse<LoginResponse>, RestError, LoginRequest>({
     mutationFn: login,
-    onSuccess: () => toast.success('Đăng nhập thành công'),
-    onError: () => toast.error('Đăng nhập không thành công'),
+    onSuccess: () => toast.success("Logged in successfully"),
+    onError: () => toast.error("Login failed"),
   });

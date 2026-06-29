@@ -13,9 +13,9 @@ export const useRegister = () => {
   return useMutation<RestResponse<RegisterResponse>, RestError, RegisterRequest>({
     mutationFn: register,
     onSuccess: () => {
-      toast.success("Đăng ký tài khoản thành công");
+      toast.success("Account registered successfully");
       navigate("/login");
     },
-    onError: () => toast.error("Đăng ký tài khoản thất bại"),
+    onError: () => toast.error("Registration failed"),
   });
 };
