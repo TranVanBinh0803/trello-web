@@ -33,6 +33,7 @@ React frontend for a Trello-like Kanban application. It connects to the Express 
 - Upload avatar and card attachments through backend S3 APIs
 - Upgrade public board to private through VNPAY sandbox
 - Light and dark mode support across auth pages and app UI
+- Responsive layout for desktop, tablet, and mobile views
 
 ## Project Structure
 
@@ -49,12 +50,26 @@ src
   untils           Shared utilities, constants, formatters, validators
 ```
 
-More details are available in `SRC_OVERVIEW.md`.
-
 ## Requirements
 
 - Node.js 18 or newer
 - Backend API running locally or deployed
+
+## Demo Account
+
+Use this section to provide a test account for reviewers or interviewers.
+
+- Owner account
+```text
+Email: owner@gmail.com
+Password: 123456
+```
+
+- member account
+```text
+Email: member@gmail.com
+Password: 123456
+```
 
 ## Environment Variables
 
