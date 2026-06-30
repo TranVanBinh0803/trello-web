@@ -1,4 +1,4 @@
-import { Box, Button, TextField } from "@mui/material";
+import { Box, Button, TextField, Tooltip } from "@mui/material";
 import React, { useState } from "react";
 import Column from "./Column/Column";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
@@ -21,6 +21,8 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns, canEdit = true }) =>
   };
 
   const [newColumnTitle, setNewColumnTitle] = useState("");
+  const trimmedNewColumnTitle = newColumnTitle.trim();
+  const isNewColumnTitleValid = trimmedNewColumnTitle.length >= 3;
 
   const createColumnApi = useCreateColumn();
 
@@ -30,13 +32,13 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns, canEdit = true }) =>
       return;
     }
 
-    if (!newColumnTitle.trim()) {
-      toast.error("Please enter column title");
+    if (!isNewColumnTitleValid) {
+      toast.error("Column title must be at least 3 characters");
       return;
     }
 
     const newColumnData = {
-      title: newColumnTitle,
+      title: trimmedNewColumnTitle,
       boardId: board._id,
     };
 
@@ -107,21 +109,31 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns, canEdit = true }) =>
               gap: 1,
             }}
           >
-            <TextField
-              label="Enter column label ..."
-              type="text"
-              size="small"
-              variant="outlined"
-              autoFocus
-              value={newColumnTitle}
-              onChange={(e) => setNewColumnTitle(e.target.value)}
-            />
+            <Tooltip
+              title={
+                Boolean(trimmedNewColumnTitle) && !isNewColumnTitleValid
+                  ? "At least 3 characters"
+                  : ""
+              }
+            >
+              <TextField
+                label="Enter column label ..."
+                type="text"
+                size="small"
+                variant="outlined"
+                autoFocus
+                value={newColumnTitle}
+                onChange={(e) => setNewColumnTitle(e.target.value)}
+                error={Boolean(trimmedNewColumnTitle) && !isNewColumnTitleValid}
+              />
+            </Tooltip>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Button
                 onClick={addNewColumn}
                 variant="contained"
                 color="success"
                 size="small"
+                disabled={!isNewColumnTitleValid || createColumnApi.isPending}
                 sx={{ boxShadow: "none", border: "none" }}
               >
                 Add Column
