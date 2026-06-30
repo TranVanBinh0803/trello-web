@@ -14,6 +14,7 @@ import PublicOffIcon from "@mui/icons-material/PublicOff";
 import {
   Avatar,
   AvatarGroup,
+  Badge,
   Box,
   Button,
   Chip,
@@ -36,6 +37,7 @@ import type { Theme } from "@mui/material/styles";
 import { useAtomValue } from "jotai";
 import { user } from "~/atoms/AuthAtoms";
 import { boardDataAtom } from "~/atoms/BoardAtom";
+import { onlineUserIdsAtom } from "~/atoms/PresenceAtom";
 import { HelperUtils } from "~/untils/helpers";
 import { SchemaUtils } from "~/untils/schema";
 import { useInviteBoardMember } from "./api/useInviteBoardMember";
@@ -59,6 +61,7 @@ const MENU_STYLES = {
 const BoardBar = () => {
   const board = useAtomValue(boardDataAtom);
   const currentUser = useAtomValue(user);
+  const onlineUserIds = useAtomValue(onlineUserIdsAtom);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [archivedOpen, setArchivedOpen] = useState(false);
@@ -96,6 +99,7 @@ const BoardBar = () => {
 
   const isOwner = (memberId: string) =>
     ownerIds.some((ownerId) => ownerId.toString() === memberId);
+  const isOnline = (memberId: string) => onlineUserIds.includes(memberId);
 
   const handleCloseInviteDialog = () => {
     setInviteOpen(false);
@@ -377,12 +381,30 @@ const BoardBar = () => {
                     title={`${member.email}${isOwner(member._id) ? " • Owner" : ""}`}
                     key={member._id}
                   >
-                    <Avatar
-                      alt={member.username}
-                      src={member.avatar || undefined}
+                    <Badge
+                      overlap="circular"
+                      variant="dot"
+                      color="success"
+                      invisible={!isOnline(member._id)}
+                      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                      sx={{
+                        "& .MuiBadge-dot": {
+                          width: 10,
+                          height: 10,
+                          minWidth: 10,
+                          border: "2px solid",
+                          borderColor: "background.paper",
+                          borderRadius: "50%",
+                        },
+                      }}
                     >
-                      {HelperUtils.getInitials(member.username)}
-                    </Avatar>
+                      <Avatar
+                        alt={member.username}
+                        src={member.avatar || undefined}
+                      >
+                        {HelperUtils.getInitials(member.username)}
+                      </Avatar>
+                    </Badge>
                   </Tooltip>
                 ))}
               </AvatarGroup>
@@ -452,9 +474,27 @@ const BoardBar = () => {
               {members.map((member) => (
                 <ListItem disableGutters key={member._id}>
                   <ListItemAvatar>
-                    <Avatar alt={member.username} src={member.avatar || undefined}>
-                      {HelperUtils.getInitials(member.username)}
-                    </Avatar>
+                    <Badge
+                      overlap="circular"
+                      variant="dot"
+                      color="success"
+                      invisible={!isOnline(member._id)}
+                      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                      sx={{
+                        "& .MuiBadge-dot": {
+                          width: 10,
+                          height: 10,
+                          minWidth: 10,
+                          border: "2px solid",
+                          borderColor: "background.paper",
+                          borderRadius: "50%",
+                        },
+                      }}
+                    >
+                      <Avatar alt={member.username} src={member.avatar || undefined}>
+                        {HelperUtils.getInitials(member.username)}
+                      </Avatar>
+                    </Badge>
                   </ListItemAvatar>
                   <ListItemText
                     primary={

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Avatar, Box, Typography, Button, Stack } from "@mui/material";
+import { Avatar, Badge, Box, Typography, Button, Stack } from "@mui/material";
 import { format } from "date-fns";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
@@ -15,6 +15,7 @@ interface CommentItemProps {
   onUpdate: (newContent: string) => void;
   onDelete: () => void;
   canEdit?: boolean;
+  isAuthorOnline?: boolean;
 }
 
 const CommentItem: React.FC<CommentItemProps> = ({
@@ -26,6 +27,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
   onUpdate,
   onDelete,
   canEdit = true,
+  isAuthorOnline = false,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(content);
@@ -58,13 +60,31 @@ const CommentItem: React.FC<CommentItemProps> = ({
       mb={2}
       sx={{ minWidth: 0 }}
     >
-      {avatar ? (
-        <Avatar alt={avatar} src={avatar}></Avatar>
-      ) : (
-        <Avatar sx={{ bgcolor: "#f4a261", fontSize: "small" }}>
-          {HelperUtils.getInitials(authorName)}
-        </Avatar>
-      )}
+      <Badge
+        overlap="circular"
+        variant="dot"
+        color="success"
+        invisible={!isAuthorOnline}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        sx={{
+          "& .MuiBadge-dot": {
+            width: 10,
+            height: 10,
+            minWidth: 10,
+            border: "2px solid",
+            borderColor: "background.paper",
+            borderRadius: "50%",
+          },
+        }}
+      >
+        {avatar ? (
+          <Avatar alt={authorName} src={avatar}></Avatar>
+        ) : (
+          <Avatar sx={{ bgcolor: "#f4a261", fontSize: "small" }}>
+            {HelperUtils.getInitials(authorName)}
+          </Avatar>
+        )}
+      </Badge>
 
       <Box flex={1} sx={{ minWidth: 0 }}>
         <Typography

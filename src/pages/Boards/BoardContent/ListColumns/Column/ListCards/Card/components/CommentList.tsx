@@ -5,6 +5,7 @@ import ReactQuill from "react-quill-new";
 import { ActivityType, CardType, CommentType } from "~/types/card";
 import { useAtomValue } from "jotai";
 import { user } from "~/atoms/AuthAtoms";
+import { onlineUserIdsAtom } from "~/atoms/PresenceAtom";
 import { useAddComment } from "../api/useAddComment";
 import CommentItem from "./CommentItem";
 import { addCommentRequest } from "~/apis/services/card/Card";
@@ -35,6 +36,7 @@ const CommentList: React.FC<CommentListProps> = ({
     useState<ActivityType[]>(activities);
 
   const userAtom = useAtomValue(user);
+  const onlineUserIds = useAtomValue(onlineUserIdsAtom);
   const addCommentMutation = useAddComment(card._id);
   const updateCommentMutation = useUpdateComment();
   const deleteCommentMutation = useDeleteComment();
@@ -55,14 +57,6 @@ const CommentList: React.FC<CommentListProps> = ({
       content: value,
     };
 
-    const newComment: CommentType = {
-      _id: Date.now().toString(),
-      authorName: commentRequest?.authorName ?? "Author Name",
-      avatar: commentRequest.avatar ?? "Avatar",
-      content: commentRequest.content,
-      createdAt: new Date().toISOString(),
-      updatedAt: null,
-    };
     addCommentMutation.mutate(commentRequest, {
       onSuccess: (data) => {
         const newComments = data.data.comments ?? [];
@@ -184,6 +178,9 @@ const CommentList: React.FC<CommentListProps> = ({
           content={comment.content}
           createdAt={comment.createdAt}
           updatedAt={comment.updatedAt || ""}
+          isAuthorOnline={
+            Boolean(comment.authorId) && onlineUserIds.includes(comment.authorId)
+          }
           onDelete={() => handleDeleteComment(comment._id)}
           onUpdate={(updatedContent) =>
             handleUpdateComment(comment._id, updatedContent)

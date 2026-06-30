@@ -3,6 +3,7 @@ import BoardBar from "./BoardBar/BoardBar";
 import BoardContent from "./BoardContent/BoardContent";
 import AppBar from "~/components/AppBar/AppBar";
 import { useBoardData } from "~/hooks/board/useBoardData";
+import { useBoardSocket } from "~/hooks/board/useBoardSocket";
 import { useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -11,6 +12,7 @@ const Board: React.FC = () => {
   const { boardId } = useParams<{ boardId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { error, isError, isFetching } = useBoardData(boardId);
+  useBoardSocket(boardId);
 
   useEffect(() => {
     const paymentStatus = searchParams.get("payment");

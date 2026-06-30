@@ -1,5 +1,6 @@
 export interface CommentType {
   _id: string;
+  authorId?: string | null;
   authorName: string;
   avatar: string | null;
   content: string;
