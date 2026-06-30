@@ -81,10 +81,11 @@ const UpdateFileNameMenu: React.FC<UpdateFileNameMenuProps> = ({
       PaperProps={{
         sx: {
           padding: 2,
-          borderRadius: 2,
-          width: 300,
-          maxWidth: 300,
+          borderRadius: 1,
+          width: { xs: "calc(100vw - 32px)", sm: 300 },
+          maxWidth: "calc(100vw - 32px)",
           minHeight: 180,
+          boxSizing: "border-box",
         },
       }}
     >

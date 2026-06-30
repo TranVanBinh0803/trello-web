@@ -48,8 +48,9 @@ export function CardModalHeader({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "flex-start",
-        paddingTop: 2,
-        paddingX: 2,
+        gap: 1,
+        paddingTop: { xs: 1.25, sm: 2 },
+        paddingX: { xs: 1.25, sm: 2 },
         borderBottom: "1px solid",
         borderBottomColor: "divider",
         height: headerHeight,
@@ -66,10 +67,29 @@ export function CardModalHeader({
         variant="contained"
         endIcon={<KeyboardArrowDownRounded />}
         disabled
+        sx={{
+          minWidth: 0,
+          maxWidth: { xs: "calc(100vw - 120px)", sm: 520 },
+          "& .MuiButton-endIcon": {
+            ml: { xs: 0.25, sm: 1 },
+          },
+          "& .MuiButtonBase-root": {
+            minWidth: 0,
+          },
+        }}
       >
-        {card.title}
+        <Box
+          component="span"
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {card.title}
+        </Box>
       </Button>
-      <Box display="flex" gap={0.5}>
+      <Box display="flex" gap={0.5} flexShrink={0}>
         {canEdit && (
           <Tooltip title="Cover">
             <IconButton

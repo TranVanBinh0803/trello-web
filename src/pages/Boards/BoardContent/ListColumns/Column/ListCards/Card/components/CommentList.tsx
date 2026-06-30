@@ -63,8 +63,6 @@ const CommentList: React.FC<CommentListProps> = ({
       createdAt: new Date().toISOString(),
       updatedAt: null,
     };
-
-    // setLocalComments((prevComments) => [...prevComments, newComment]);
     addCommentMutation.mutate(commentRequest, {
       onSuccess: (data) => {
         const newComments = data.data.comments ?? [];
@@ -92,7 +90,7 @@ const CommentList: React.FC<CommentListProps> = ({
           setLocalActivities(data.data.activities ?? []);
           onCardChange(data.data);
         },
-      }
+      },
     );
   };
 
@@ -107,12 +105,12 @@ const CommentList: React.FC<CommentListProps> = ({
           setLocalActivities(data.data.activities ?? []);
           onCardChange(data.data);
         },
-      }
+      },
     );
   };
 
   return (
-    <Box>
+    <Box sx={{ p: {xs: 0, sm: 2} }}>
       <Box
         sx={{
           display: "flex",
@@ -126,13 +124,18 @@ const CommentList: React.FC<CommentListProps> = ({
             display: "flex",
             alignItems: "center",
             gap: 1,
-            marginLeft: 1,
+            marginLeft: { xs: 0, sm: 1 },
           }}
         >
           <ChatOutlined fontSize="small" />
           <Typography variant="body2">Comments and activity</Typography>
         </Box>
-        <Button variant="outlined" onClick={() => setShowDetails((prev) => !prev)}>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => setShowDetails((prev) => !prev)}
+          sx={{ alignSelf: { xs: "flex-start", sm: "center" } }}
+        >
           {showDetails ? "Hide Details" : "Show Details"}
         </Button>
       </Box>
@@ -140,7 +143,11 @@ const CommentList: React.FC<CommentListProps> = ({
       {canEdit && !isAddComment && (
         <Button
           variant="outlined"
-          sx={{ width: "100%", justifyContent: "flex-start", mt: 1 }}
+          sx={{
+            width: "100%",
+            justifyContent: "flex-start",
+            mt: 1,
+          }}
           onClick={() => setIsAddComment(true)}
         >
           Write a comment...

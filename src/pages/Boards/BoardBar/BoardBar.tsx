@@ -30,7 +30,9 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
+import type { Theme } from "@mui/material/styles";
 import { useAtomValue } from "jotai";
 import { user } from "~/atoms/AuthAtoms";
 import { boardDataAtom } from "~/atoms/BoardAtom";
@@ -62,6 +64,8 @@ const BoardBar = () => {
   const [archivedOpen, setArchivedOpen] = useState(false);
   const [privateUpgradeOpen, setPrivateUpgradeOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down("sm"));
+  const isMobileOrTablet = useMediaQuery((theme: Theme) => theme.breakpoints.down("md"));
 
   const inviteBoardMemberMutation = useInviteBoardMember(board?._id || "");
   const leaveBoardMutation = useLeaveBoard(board?._id || "");
@@ -160,26 +164,45 @@ const BoardBar = () => {
   return (
     <>
       <Box
-        px={2}
+        px={{ xs: 1, sm: 2 }}
         sx={{
           width: "100%",
           height: (theme) => theme.trello.boardBarHeight,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 2,
-          overflowX: "auto",
+          gap: { xs: 0.75, sm: 1, md: 2 },
+          overflowX: "hidden",
           borderTop: "1px solid #ccc",
           borderBottom: "1px solid #ccc",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: 0.5, sm: 1, md: 2 },
+            flex: 1,
+            minWidth: 0,
+            overflow: "hidden",
+          }}
+        >
           {isBoardReady ? (
             <>
               <Chip
                 icon={<DashboardRounded color="primary" />}
                 label={board?.title}
-                sx={{ ...MENU_STYLES, minWidth: 160 }}
+                sx={{
+                  ...MENU_STYLES,
+                  minWidth: 0,
+                  maxWidth: { xs: "100%", sm: "100%", md: 260 },
+                  flex: { xs: "1 1 auto", sm: "1 1 auto", md: "0 1 260px" },
+                  "& .MuiChip-label": {
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    minWidth: 0,
+                  },
+                }}
               />
               <Chip
                 icon={
@@ -189,19 +212,44 @@ const BoardBar = () => {
                     <PublicOffIcon color="primary" />
                   )
                 }
-                label={`${isPublic ? "Public" : "Private"} Workspace`}
-                sx={{ ...MENU_STYLES, minWidth: 170 }}
+                label={isMobileOrTablet ? "" : `${isPublic ? "Public" : "Private"} Workspace`}
+                sx={{
+                  ...MENU_STYLES,
+                  minWidth: { xs: 34, md: 170 },
+                  width: { xs: 34, md: "auto" },
+                  flexShrink: 0,
+                  "& .MuiChip-icon": {
+                    mr: { xs: 0, md: 0.5 },
+                  },
+                  "& .MuiChip-label": {
+                    display: { xs: "none", md: "inline-block" },
+                  },
+                }}
               />
               {isPublic && isCurrentUserOwner && (
-                <Button
-                  variant="contained"
-                  color="success"
-                  size="small"
-                  startIcon={<LockRounded />}
-                  onClick={() => setPrivateUpgradeOpen(true)}
-                >
-                  Make private
-                </Button>
+                <Tooltip title="Make board private">
+                  <Box component="span" sx={{ flexShrink: 0 }}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      startIcon={<LockRounded />}
+                      onClick={() => setPrivateUpgradeOpen(true)}
+                      sx={{
+                        minWidth: { xs: 36, md: 64 },
+                        px: { xs: 0.75, md: 1.5 },
+                        "& .MuiButton-startIcon": {
+                          mr: { xs: 0, md: 1 },
+                          ml: 0,
+                        },
+                      }}
+                    >
+                      <Box component="span" sx={{ display: { xs: "none", md: "inline" } }}>
+                        Make private
+                      </Box>
+                    </Button>
+                  </Box>
+                </Tooltip>
               )}
               {!isCurrentUserMember && (
                 <Chip
@@ -219,23 +267,58 @@ const BoardBar = () => {
             </>
           )}
         </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Button
-            variant="outlined"
-            startIcon={<PersonAdd />}
-            onClick={() => setInviteOpen(true)}
-            disabled={!isBoardReady || !isCurrentUserOwner}
-          >
-            Invite
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Inventory2Rounded />}
-            onClick={() => setArchivedOpen(true)}
-            disabled={!isBoardReady || !isCurrentUserMember}
-          >
-            Archived
-          </Button>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: 0.5, sm: 0.75, md: 2 },
+            flexShrink: 0,
+          }}
+        >
+          <Tooltip title="Invite member">
+            <Box component="span">
+              <Button
+                variant="outlined"
+                startIcon={<PersonAdd />}
+                onClick={() => setInviteOpen(true)}
+                disabled={!isBoardReady || !isCurrentUserOwner}
+                sx={{
+                  minWidth: { xs: 36, md: 64 },
+                  px: { xs: 0.75, md: 1.5 },
+                  "& .MuiButton-startIcon": {
+                    mr: { xs: 0, md: 1 },
+                    ml: 0,
+                  },
+                }}
+              >
+                <Box component="span" sx={{ display: { xs: "none", md: "inline" } }}>
+                  Invite
+                </Box>
+              </Button>
+            </Box>
+          </Tooltip>
+          <Tooltip title={`Archived items${archivedItemCount ? ` (${archivedItemCount})` : ""}`}>
+            <Box component="span">
+              <Button
+                variant="outlined"
+                startIcon={<Inventory2Rounded />}
+                onClick={() => setArchivedOpen(true)}
+                disabled={!isBoardReady || !isCurrentUserMember}
+                sx={{
+                  minWidth: { xs: 36, md: 64 },
+                  px: { xs: 0.75, md: 1.5 },
+                  "& .MuiButton-startIcon": {
+                    mr: { xs: 0, md: 1 },
+                    ml: 0,
+                  },
+                }}
+              >
+                <Box component="span" sx={{ display: { xs: "none", md: "inline"}}}>
+                  Archived
+                </Box>
+              </Button>
+            </Box>
+          </Tooltip>
           <Tooltip
             title={
               isCurrentUserOwner
@@ -254,20 +337,37 @@ const BoardBar = () => {
                 disabled={
                   !isBoardReady || isCurrentUserOwner || !isCurrentUserMember
                 }
+                sx={{
+                  minWidth: { xs: 36, md: 64 },
+                  px: { xs: 0.75, md: 1.5 },
+                  "& .MuiButton-startIcon": {
+                    mr: { xs: 0, md: 1 },
+                    ml: 0,
+                  },
+                }}
               >
-                Leave
+                <Box component="span" sx={{ display: { xs: "none", md: "inline" } }}>
+                  Leave
+                </Box>
               </Button>
             </Box>
           </Tooltip>
-          <Box sx={{ width: 144, display: "flex", justifyContent: "flex-end" }}>
+          <Box
+            sx={{
+              width: { xs: 70, sm: 78, md: 144 },
+              display: "flex",
+              justifyContent: "flex-end",
+              flexShrink: 0,
+            }}
+          >
             {isBoardReady ? (
               <AvatarGroup
-                max={4}
+                max={isMobileOrTablet ? 2 : 4}
                 sx={{
                   "& .MuiAvatar-root": {
-                    width: 34,
-                    height: 34,
-                    fontSize: 16,
+                    width: { xs: 30, sm: 34 },
+                    height: { xs: 30, sm: 34 },
+                    fontSize: { xs: 14, sm: 16 },
                     backgroundColor: "primary.main",
                   },
                 }}
@@ -288,11 +388,11 @@ const BoardBar = () => {
               </AvatarGroup>
             ) : (
               <AvatarGroup
-                max={4}
+                max={isMobileOrTablet ? 2 : 4}
                 sx={{
                   "& .MuiAvatar-root": {
-                    width: 34,
-                    height: 34,
+                    width: { xs: 30, sm: 34 },
+                    height: { xs: 30, sm: 34 },
                   },
                 }}
               >
@@ -316,6 +416,7 @@ const BoardBar = () => {
       <Dialog
         open={inviteOpen}
         onClose={handleCloseInviteDialog}
+        fullScreen={isMobile}
         fullWidth
         maxWidth="xs"
       >
@@ -398,6 +499,7 @@ const BoardBar = () => {
       <Dialog
         open={leaveOpen}
         onClose={handleCloseLeaveDialog}
+        fullScreen={isMobile}
         fullWidth
         maxWidth="xs"
       >
@@ -423,6 +525,7 @@ const BoardBar = () => {
       <Dialog
         open={privateUpgradeOpen}
         onClose={handleClosePrivateUpgradeDialog}
+        fullScreen={isMobile}
         fullWidth
         maxWidth="xs"
       >
@@ -449,6 +552,7 @@ const BoardBar = () => {
       <Dialog
         open={archivedOpen}
         onClose={handleCloseArchivedDialog}
+        fullScreen={isMobile}
         fullWidth
         maxWidth="sm"
       >

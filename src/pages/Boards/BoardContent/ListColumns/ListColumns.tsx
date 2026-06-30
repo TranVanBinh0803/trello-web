@@ -62,6 +62,10 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns, canEdit = true }) =>
           display: "flex",
           overflowX: "auto",
           overflowY: "hidden",
+          gap: { xs: 1, sm: 0 },
+          scrollSnapType: { xs: "x proximity", sm: "none" },
+          WebkitOverflowScrolling: "touch",
+          pb: 1,
         }}
       >
         {columns?.map((column) => (
@@ -73,7 +77,7 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns, canEdit = true }) =>
             sx={{
               minWidth: 250,
               maxWidth: 250,
-              mx: 2,
+              mx: { xs: 0, sm: 2 },
               borderRadius: "8px",
               border: "1px solid #ccc",
               backgroundColor: "rgba(0 , 0, 0, 0.04)",
@@ -93,7 +97,7 @@ const ListColumns: React.FC<ListColumnsProps> = ({ columns, canEdit = true }) =>
             sx={{
               minWidth: 250,
               maxWidth: 250,
-              mx: 2,
+              mx: { xs: 0, sm: 2 },
               p: 1,
               borderRadius: "6px",
               height: "fit-content",

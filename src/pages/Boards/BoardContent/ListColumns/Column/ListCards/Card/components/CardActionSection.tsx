@@ -21,7 +21,14 @@ export function CardActionSection({
       direction="row"
       flexWrap="wrap"
       gap={1}
-      sx={{ justifyContent: "center", my: 1 }}
+      sx={{
+        justifyContent: { xs: "stretch", sm: "center" },
+        my: 1,
+        "& .MuiButton-root": {
+          flex: { xs: "1 1 calc(50% - 8px)", sm: "0 0 auto" },
+          minWidth: { xs: 0, sm: 96 },
+        },
+      }}
     >
       <Button variant="outlined" startIcon={<Label />} onClick={onToggleLabels}>
         Labels

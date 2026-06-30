@@ -5,7 +5,6 @@ import {
   IconButton,
   Typography,
   Button,
-  Grid,
   Divider,
   Tooltip,
   ImageList,
@@ -92,9 +91,10 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
       PaperProps={{
         sx: {
           padding: 2,
-          borderRadius: 2,
-          width: 300,
-          maxWidth: 300,
+          borderRadius: 1,
+          width: { xs: "calc(100vw - 32px)", sm: 300 },
+          maxWidth: "calc(100vw - 32px)",
+          boxSizing: "border-box",
         },
       }}
     >
@@ -153,7 +153,7 @@ const CoverMenu: React.FC<CoverMenuProps> = ({
 
         {localCard.attachments && localCard.attachments.length > 0 && (
           <Box sx={{ mb: 2 }}>
-            <ImageList sx={{ height: 48, width: "auto" }} cols={3} gap={4}>
+            <ImageList sx={{ height: 48, width: "100%", m: 0 }} cols={3} gap={4}>
               {localCard.attachments.map((attachment) => (
                 <ImageListItem
                   key={attachment.fileUrl}

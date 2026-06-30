@@ -93,7 +93,7 @@ export function ChecklistSection({
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
             Add checklist
           </Typography>
-          <Stack direction="row" gap={1}>
+          <Stack direction={{ xs: "column", sm: "row" }} gap={1}>
             <TextField
               size="small"
               fullWidth
@@ -110,10 +110,10 @@ export function ChecklistSection({
 
       {checklists.length > 0 && (
         <Box sx={{ mt: 2 }}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            gap={1}
+              <Stack
+                direction="row"
+                alignItems="center"
+                gap={1}
             sx={{
               color: isChecklistCompleted ? "success.main" : "text.primary",
             }}
@@ -152,9 +152,10 @@ export function ChecklistSection({
                   }}
                 >
                   <Stack
-                    direction="row"
+                    direction={{ xs: "column", sm: "row" }}
                     justifyContent="space-between"
-                    alignItems="center"
+                    alignItems={{ xs: "stretch", sm: "center" }}
+                    gap={1}
                   >
                     <Typography
                       fontWeight={600}
@@ -163,6 +164,7 @@ export function ChecklistSection({
                           ? "success.main"
                           : "text.primary"
                       }
+                      sx={{ overflowWrap: "anywhere" }}
                     >
                       {checklist.title}
                     </Typography>
@@ -187,7 +189,7 @@ export function ChecklistSection({
                       <Stack
                         key={item._id}
                         direction="row"
-                        alignItems="center"
+                        alignItems="flex-start"
                         gap={1}
                       >
                         <Checkbox
@@ -209,6 +211,9 @@ export function ChecklistSection({
                           variant="body2"
                           sx={{
                             flex: 1,
+                            minWidth: 0,
+                            overflowWrap: "anywhere",
+                            pt: 0.75,
                             color: isCurrentChecklistCompleted
                               ? "success.main"
                               : "text.primary",
@@ -240,7 +245,7 @@ export function ChecklistSection({
                     ))}
                   </Stack>
                   {canEdit && (
-                    <Stack direction="row" gap={1} sx={{ mt: 1 }}>
+                    <Stack direction={{ xs: "column", sm: "row" }} gap={1} sx={{ mt: 1 }}>
                       <TextField
                         size="small"
                         fullWidth

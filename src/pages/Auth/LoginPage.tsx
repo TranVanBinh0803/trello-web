@@ -8,9 +8,8 @@ import {
   Stack,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { FacebookIcon, GoogleIcon } from "./components/CustomIcons";
 import { useSetAtom } from "jotai";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { accessTokenAtom, accessTokenExpiresAtAtom, user } from "~/atoms/AuthAtoms";
 import { useLogin } from "./api/useLogin";
 import dayjs from "dayjs";
@@ -106,6 +105,7 @@ export default function LoginPage() {
         </Typography>
         <Box
           component="form"
+          noValidate
           onSubmit={handleSubmit(onSubmit)}
           sx={{
             display: "flex",
@@ -116,7 +116,7 @@ export default function LoginPage() {
         >
           <TextField
             label="Email"
-            type="text"
+            type="email"
             fullWidth
             autoComplete="email"
             {...register("email")}
@@ -142,17 +142,13 @@ export default function LoginPage() {
               ? "Signing in..."
               : "Sign in"}
           </Button>
-          <Link
-            component="button"
-            variant="body2"
-            onClick={() => navigate("/forgot-password")}
-          >
+          <Link component={RouterLink} to="/forgot-password" variant="body2">
             Forgot your password?
           </Link>
         </Box>
         <Divider>or</Divider>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Button
+          {/* <Button
             fullWidth
             variant="outlined"
             startIcon={<GoogleIcon />}
@@ -167,10 +163,10 @@ export default function LoginPage() {
             onClick={() => alert("Sign in with Facebook")}
           >
             Sign in with Facebook
-          </Button>
+          </Button> */}
           <Typography sx={{ textAlign: "center" }}>
             Don&apos;t have an account?{" "}
-            <Link href="/register" variant="body2">
+            <Link component={RouterLink} to="/register" variant="body2">
               Sign up
             </Link>
           </Typography>

@@ -32,6 +32,11 @@ export function LabelsSection({
                 backgroundColor: label.color,
                 color: "#172b4d",
                 fontWeight: 700,
+                maxWidth: "100%",
+                "& .MuiChip-label": {
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                },
               }}
             />
           ))}
@@ -64,6 +69,8 @@ export function LabelsSection({
                     backgroundColor: selected ? label.color : "background.paper",
                     color: selected ? "#172b4d" : "text.primary",
                     borderColor: label.color,
+                    minWidth: 0,
+                    overflowWrap: "anywhere",
                     "&:hover": {
                       backgroundColor: label.color,
                       color: "#172b4d",

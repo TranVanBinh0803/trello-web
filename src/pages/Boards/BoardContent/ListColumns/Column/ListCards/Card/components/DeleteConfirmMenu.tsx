@@ -36,8 +36,10 @@ const DeleteConfirmMenu: React.FC<DeleteConfirmMenuProps> = ({
       PaperProps={{
         sx: {
           padding: 2,
-          borderRadius: 2,
-          maxWidth: 300,
+          borderRadius: 1,
+          width: { xs: "calc(100vw - 32px)", sm: 300 },
+          maxWidth: "calc(100vw - 32px)",
+          boxSizing: "border-box",
         },
       }}
     >

@@ -73,6 +73,16 @@ export const toDateInputValue = (value?: string | null) => {
   return value.slice(0, 10);
 };
 
+export const formatDateDisplayValue = (value?: string | null) => {
+  const dateValue = toDateInputValue(value);
+  if (!dateValue) return "";
+
+  const [year, month, day] = dateValue.split("-");
+  if (!year || !month || !day) return dateValue;
+
+  return `${day}/${month}/${year}`;
+};
+
 export const getChecklistProgress = (checklists: ChecklistType[] = []) => {
   const items = checklists.flatMap((checklist) => checklist.items);
   const completedItems = items.filter((item) => item.completed).length;

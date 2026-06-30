@@ -67,6 +67,8 @@ const Column: React.FC<ColumnProps> = ({ column, canEdit = true }) => {
 
   const [openNewCardForm, setOpenNewCardForm] = useState<boolean>(false);
   const [newCardTitle, setNewCardTitle] = useState<string>("");
+  const trimmedNewCardTitle = newCardTitle.trim();
+  const isNewCardTitleValid = trimmedNewCardTitle.length >= 3;
   const manageModal = useAtomValue(manageModalAtom);
 
   const toggleOpenNewCardForm = () => {
@@ -76,13 +78,13 @@ const Column: React.FC<ColumnProps> = ({ column, canEdit = true }) => {
   const createCardApi = useCreateCard();
 
   const addNewCard = () => {
-    if (!newCardTitle.trim()) {
-      toast.error("Please enter card title");
+    if (!isNewCardTitleValid) {
+      toast.error("Card title must be at least 3 characters");
       return;
     }
 
     const newCardData = {
-      title: newCardTitle,
+      title: trimmedNewCardTitle,
       boardId: column.boardId,
       columnId: column._id,
     };
@@ -127,11 +129,12 @@ const Column: React.FC<ColumnProps> = ({ column, canEdit = true }) => {
         sx={{
           minWidth: 300,
           maxWidth: 300,
-          ml: 2,
+          ml: { xs: 0, sm: 2 },
           borderRadius: "8px",
           border: "1px solid #ccc",
           backgroundColor: "rgba(0 , 0, 0, 0.04)",
           height: "fit-content",
+          scrollSnapAlign: { xs: "start", sm: "none" },
           maxHeight: (theme) =>
             `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`,
         }}
@@ -247,26 +250,38 @@ const Column: React.FC<ColumnProps> = ({ column, canEdit = true }) => {
               sx={{
                 height: "100%",
                 display: "flex",
-                alignItems: "center",
+                alignItems: { xs: "stretch", sm: "center" },
+                flexDirection: { xs: "column", sm: "row" },
                 gap: 1,
               }}
             >
-              <TextField
-                label="Enter card title ..."
-                type="text"
-                size="small"
-                variant="outlined"
-                autoFocus
-                data-no-dnd="true"
-                value={newCardTitle}
-                onChange={(e) => setNewCardTitle(e.target.value)}
-              />
+              <Tooltip
+                title={
+                  Boolean(trimmedNewCardTitle) && !isNewCardTitleValid
+                    ? "At least 3 characters"
+                    : ""
+                }
+              >
+                <TextField
+                  label="Enter card title ..."
+                  type="text"
+                  size="small"
+                  variant="outlined"
+                  autoFocus
+                  data-no-dnd="true"
+                  fullWidth
+                  value={newCardTitle}
+                  onChange={(e) => setNewCardTitle(e.target.value)}
+                  error={Boolean(trimmedNewCardTitle) && !isNewCardTitleValid}
+                />
+              </Tooltip>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Button
                   onClick={addNewCard}
                   variant="contained"
                   color="success"
                   size="medium"
+                  disabled={!isNewCardTitleValid || createCardApi.isPending}
                   sx={{
                     boxShadow: "none",
                     border: "none",

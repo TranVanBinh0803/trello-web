@@ -28,7 +28,14 @@ export function CardTitleSection({
   onCompletedClick,
 }: CardTitleSectionProps) {
   return (
-    <Box sx={{ display: "flex", alignItems: "center" }}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 0.5,
+        minWidth: 0,
+      }}
+    >
       <Tooltip title="Mark complete">
         <Box
           onPointerDown={(event) => event.stopPropagation()}
@@ -50,14 +57,24 @@ export function CardTitleSection({
           />
         </Box>
       </Tooltip>
-      <Typography variant="body2">{card.title}</Typography>
+      <Typography
+        variant="body2"
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          overflowWrap: "anywhere",
+          pt: 1.25,
+        }}
+      >
+        {card.title}
+      </Typography>
       {card.completed && (
         <Chip
           size="small"
           icon={<CheckCircle />}
           label="Complete"
           color="success"
-          sx={{ ml: 1 }}
+          sx={{ ml: { xs: 0, sm: 1 }, mt: 0.75, flexShrink: 0 }}
         />
       )}
     </Box>

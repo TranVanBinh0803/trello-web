@@ -8,6 +8,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  IconButton,
   Paper,
   Popper,
   TextField,
@@ -146,11 +147,11 @@ const AppBar: React.FC = () => {
         height: (theme) => theme.trello.appBarHeight,
         width: "100%",
         justifyContent: "space-between",
-        gap: 2,
+        gap: { xs: 1, sm: 2 },
         overflowX: "auto",
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 2 } }}>
         <Box
           component="button"
           type="button"
@@ -171,6 +172,7 @@ const AppBar: React.FC = () => {
           <Typography
             component="span"
             sx={{
+              display: { xs: "none", sm: "inline" },
               fontSize: "1.2rem",
               fontWeight: "bold",
               color: "primary.main",
@@ -180,11 +182,20 @@ const AppBar: React.FC = () => {
           </Typography>
         </Box>
         {isLoggedIn && (
-        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <IconButton
+            color="primary"
+            aria-label="Create"
+            onClick={handleOpenCreateMenu}
+            sx={{ display: { xs: "inline-flex", md: "none" } }}
+          >
+            <LibraryAddIcon />
+          </IconButton>
           <Button
             variant="outlined"
             startIcon={<LibraryAddIcon />}
             onClick={handleOpenCreateMenu}
+            sx={{ display: { xs: "none", md: "inline-flex" } }}
           >
             Create
           </Button>
@@ -211,7 +222,7 @@ const AppBar: React.FC = () => {
         )}
       </Box>
 
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 1, sm: 2 } }}>
         <ClickAwayListener onClickAway={() => setSearchFocused(false)}>
           <Box ref={searchAnchorRef} sx={{ position: "relative" }}>
             <TextField
@@ -229,7 +240,10 @@ const AppBar: React.FC = () => {
                   handleSearch();
                 }
               }}
-              sx={{ minWidth: "150px", maxWidth: "210px" }}
+              sx={{
+                minWidth: { xs: 132, sm: 150 },
+                maxWidth: { xs: 156, sm: 210 },
+              }}
               slotProps={{
                 input: {
                   startAdornment: (

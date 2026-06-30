@@ -369,10 +369,12 @@ const BoardContent = ({ isFetching }: BoardContentProps) => {
           flex: 1,
           height: (theme) => theme.trello.boardContentHeight,
           width: "100%",
-          p: "10px 0",
+          px: { xs: 1, sm: 0 },
+          py: "10px",
           display: "flex",
           alignItems: isInitialLoading ? "center" : "flex-start",
           justifyContent: isInitialLoading ? "center" : "flex-start",
+          overflow: "hidden",
         }}
       >
         {isInitialLoading ? (

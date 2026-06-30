@@ -83,6 +83,7 @@ export default function ResetPasswordPage() {
         </Typography>
         <Box
           component="form"
+          noValidate
           onSubmit={handleSubmit(onSubmit)}
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >

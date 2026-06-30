@@ -102,7 +102,7 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
   return (
     <Box
       display="flex"
-      alignItems="center"
+      alignItems={{ xs: "flex-start", sm: "center" }}
       justifyContent="space-between"
       sx={{
         borderRadius: 1,
@@ -111,9 +111,16 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
         },
         px: 1,
         py: 1,
+        gap: 1,
+        minWidth: 0,
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={2}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={{ xs: 1, sm: 2 }}
+        sx={{ minWidth: 0, flex: 1 }}
+      >
         <Box
           sx={{
             backgroundColor: "#e7e9ec",
@@ -121,6 +128,7 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
             borderRadius: 1,
             width: 50,
             height: 50,
+            minWidth: 50,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -129,11 +137,13 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
         >
           {HelperUtils.getFileType(fileUrl).toUpperCase()}
         </Box>
-        <Box>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography
             fontWeight={500}
             sx={{
               cursor: "pointer",
+              overflowWrap: "anywhere",
+              wordBreak: "break-word",
               "&:hover": {
                 textDecoration: "underline",
               },
@@ -142,13 +152,17 @@ const AttachmentItem: React.FC<AttachmentItemProps> = ({
           >
             {localFileName}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: "block", overflowWrap: "anywhere" }}
+          >
             {format(new Date(createdAt), "MMM dd, yyyy, h:mm a")}
           </Typography>
         </Box>
       </Stack>
 
-      <Stack direction="row" spacing={1}>
+      <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
         <IconButton onClick={handleOpenFile} title="Open file">
           <OpenInNewIcon fontSize="small" />
         </IconButton>

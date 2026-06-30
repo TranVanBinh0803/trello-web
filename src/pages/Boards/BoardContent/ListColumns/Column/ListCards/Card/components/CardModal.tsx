@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent, type MouseEvent } from "react";
-import { Box, Grid, Modal, Typography } from "@mui/material";
+import { Box, Grid, Modal } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material";
 import "react-quill-new/dist/quill.snow.css";
 import { cloneDeep } from "lodash";
@@ -34,31 +34,44 @@ interface CardModalProps {
 
 const modalStyles: SxProps<Theme> = {
   position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 1200,
+  top: { xs: 0, sm: "50%" },
+  left: { xs: 0, sm: "50%" },
+  transform: { xs: "none", sm: "translate(-50%, -50%)" },
+  width: { xs: "100vw", sm: "min(1200px, calc(100vw - 32px))" },
+  height: { xs: "100dvh", sm: "auto" },
   bgcolor: "background.paper",
   color: "text.primary",
-  borderRadius: "8px",
+  borderRadius: { xs: 0, sm: "8px" },
   boxShadow: (theme) =>
     theme.palette.mode === "dark"
       ? "0 8px 32px rgba(0, 0, 0, 0.55)"
       : "0 4px 20px rgba(0, 0, 0, 0.15)",
-  maxHeight: "90vh",
+  maxHeight: { xs: "100dvh", sm: "90vh" },
   overflowY: "auto",
+  overflowX: "hidden",
   padding: 0,
+  boxSizing: "border-box",
+  maxWidth: "100vw",
   "& .ql-toolbar": {
     borderColor: "divider",
     bgcolor: "background.default",
+    overflowX: "auto",
+    whiteSpace: "nowrap",
+    maxWidth: "100%",
+  },
+  "& .ql-toolbar .ql-formats": {
+    mr: { xs: 0.5, sm: 1.5 },
   },
   "& .ql-container": {
     borderColor: "divider",
     color: "text.primary",
+    maxWidth: "100%",
   },
   "& .ql-editor": {
-    minHeight: 120,
+    minHeight: { xs: 96, sm: 120 },
     color: "text.primary",
+    overflowWrap: "anywhere",
+    wordBreak: "break-word",
   },
   "& .ql-stroke": {
     stroke: "text.primary",
@@ -269,18 +282,29 @@ const CardModal = ({ open, onClose, card, canEdit = true }: CardModalProps) => {
             onClose={onClose}
             onOpenCoverMenu={handleOpenCoverMenu}
           />
-          <Typography
+          <Box
             id="card-modal-description"
-            sx={{ my: 2 }}
-            component="div"
+            component="section"
+            sx={{
+              my: { xs: 1, sm: 2 },
+              width: "100%",
+              maxWidth: "100%",
+              overflowX: "hidden",
+            }}
           >
-            <Grid container spacing={2}>
-              <Grid size={7} px={2}>
+            <Grid container spacing={{ xs: 1.5, md: 2 }}>
+              <Grid
+                size={{ xs: 12, md: 7 }}
+                px={{ xs: 1.5, sm: 2 }}
+                sx={{ minWidth: 0 }}
+              >
                 <Box
                   sx={{
-                    maxHeight: "65vh",
+                    maxHeight: { xs: "none", md: "65vh" },
                     overflowY: "auto",
-                    pr: 1,
+                    overflowX: "hidden",
+                    pr: { xs: 0, md: 1 },
+                    minWidth: 0,
                   }}
                 >
                   <CardTitleSection
@@ -337,12 +361,15 @@ const CardModal = ({ open, onClose, card, canEdit = true }: CardModalProps) => {
                   )}
                 </Box>
               </Grid>
-              <Grid size={5}>
+              <Grid size={{ xs: 12, md: 5 }} sx={{ minWidth: 0 }}>
                 <Box
                   sx={{
-                    maxHeight: "65vh",
+                    maxHeight: { xs: "none", md: "65vh" },
                     overflowY: "auto",
-                    pr: 1,
+                    overflowX: "hidden",
+                    px: { xs: 1.5, sm: 0 },
+                    pr: { md: 1 },
+                    minWidth: 0,
                   }}
                 >
                   <CommentList
@@ -355,7 +382,7 @@ const CardModal = ({ open, onClose, card, canEdit = true }: CardModalProps) => {
                 </Box>
               </Grid>
             </Grid>
-          </Typography>
+          </Box>
         </Box>
       </Modal>
       <CoverMenu

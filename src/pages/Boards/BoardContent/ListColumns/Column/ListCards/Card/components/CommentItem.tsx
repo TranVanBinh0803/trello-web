@@ -51,7 +51,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
   };
 
   return (
-    <Box display="flex" alignItems="flex-start" gap={2} mb={2}>
+    <Box
+      display="flex"
+      alignItems="flex-start"
+      gap={{ xs: 1, sm: 2 }}
+      mb={2}
+      sx={{ minWidth: 0 }}
+    >
       {avatar ? (
         <Avatar alt={avatar} src={avatar}></Avatar>
       ) : (
@@ -60,10 +66,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
         </Avatar>
       )}
 
-      <Box flex={1}>
-        <Typography variant="subtitle2" fontWeight={600}>
+      <Box flex={1} sx={{ minWidth: 0 }}>
+        <Typography
+          variant="subtitle2"
+          fontWeight={600}
+          sx={{ overflowWrap: "anywhere" }}
+        >
           {authorName}{" "}
-          <Typography variant="caption" color="text.secondary" component="span">
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            component="span"
+            sx={{ display: { xs: "block", sm: "inline" } }}
+          >
             {format(new Date(createdAt), "MMM dd, yyyy, h:mm a")}
             {!HelperUtils.isEmpty(updatedAt) && " (edited)"}
           </Typography>
@@ -75,7 +90,11 @@ const CommentItem: React.FC<CommentItemProps> = ({
               value={editValue}
               onChange={setEditValue}
             />
-            <Stack direction="row" spacing={2} mt={1}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              mt={1}
+            >
               <Button onClick={handleSave} size="small" variant="contained">
                 Save
               </Button>
@@ -100,6 +119,8 @@ const CommentItem: React.FC<CommentItemProps> = ({
                 padding: 1,
                 mt: 0.5,
                 backgroundColor: "#fafafa",
+                overflowWrap: "anywhere",
+                wordBreak: "break-word",
               }}
             >
               <Box
@@ -107,12 +128,16 @@ const CommentItem: React.FC<CommentItemProps> = ({
                   "& p": {
                     margin: 0,
                   },
+                  "& img": {
+                    maxWidth: "100%",
+                    height: "auto",
+                  },
                 }}
                 dangerouslySetInnerHTML={{ __html: content }}
               />
             </Box>
             {canEdit && (
-            <Stack direction="row" spacing={2} mt={0.5}>
+           <Stack direction="row" spacing={2} mt={0.5}>
               <Button onClick={() => setIsEditing(true)} size="small">
                 Edit
               </Button>

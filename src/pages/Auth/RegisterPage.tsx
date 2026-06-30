@@ -9,9 +9,8 @@ import {
   Link,
   Stack,
 } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import { styled } from "@mui/material/styles";
-import { FacebookIcon, GoogleIcon } from "./components/CustomIcons";
-import { useNavigate } from "react-router-dom";
 
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -101,6 +100,7 @@ export default function RegisterPage() {
         </Typography>
         <Box
           component="form"
+          noValidate
           onSubmit={handleSubmit(onSubmit)}
           sx={{
             display: "flex",
@@ -150,7 +150,7 @@ export default function RegisterPage() {
         </Box>
         <Divider>or</Divider>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Button
+          {/* <Button
             fullWidth
             variant="outlined"
             startIcon={<GoogleIcon />}
@@ -165,10 +165,10 @@ export default function RegisterPage() {
             onClick={() => alert("Sign up with Facebook")}
           >
             Sign up with Facebook
-          </Button>
+          </Button> */}
           <Typography sx={{ textAlign: "center" }}>
             Already have an account?{" "}
-            <Link href="/login" variant="body2">
+            <Link component={RouterLink} to="/login" variant="body2">
               Sign in
             </Link>
           </Typography>
